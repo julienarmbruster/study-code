@@ -16,7 +16,7 @@ int main(){
             }
 
         }
-        status=(status>>1);
+        pruefung=(pruefung<<1);
     }
     printf("Messwert: %d",wert);
     return 0;
