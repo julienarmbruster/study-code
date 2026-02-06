@@ -6,14 +6,14 @@ float div(float var1, float var2);
 
 int main(){
     float var1, var2;
-    char opperator;
+    char operator;
     printf("Bitte zwei Kommazahlen eingeben:\n1:");
     scanf("%f",&var1);
     printf("2:");
     scanf("%f",&var2);
-    printf("Bitte Opperator eingeben:\n");
-    scanf(" %c", &opperator);
-    switch (opperator){
+    printf("Bitte Operator eingeben:\n");
+    scanf(" %c", &operator);
+    switch (operator){
         case '+': printf("= %f\n", add(var1,var2)); break;
         case '-': printf("= %f\n", sub(var1,var2)); break;
         case '*': printf("= %f\n", mul(var1,var2)); break;
