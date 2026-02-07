@@ -3,12 +3,14 @@
 
 int main(){
     char input[100];
-    char *front = input;
+    
     printf("Bitte Wort eingeben (max. 100 Zeichen):");
     fgets(input, sizeof(input), stdin);
     input[strcspn(input, "\n")] = '\0'; 
     
+    char *front = input;
     char *back = input + strlen(input) - 1; 
+
     while(((*front|32)==(*back|32)) && front < back){
         front++;
         back--;
@@ -17,4 +19,5 @@ int main(){
         printf("Das Wort \"%s\" ist ein Palindrom\n", input);
     else
         printf("Das Wort \"%s\" ist kein Palindrom\n", input);
+    return 0;
 }
