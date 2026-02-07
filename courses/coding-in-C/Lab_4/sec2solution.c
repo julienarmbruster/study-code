@@ -4,6 +4,7 @@
 int main(){
     char input[100];
     char *front = input;
+    printf("Bitte Wort eingeben (max. 100 Zeichen):");
     fgets(input, sizeof(input), stdin);
     input[strcspn(input, "\n")] = '\0'; 
     
