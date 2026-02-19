@@ -57,7 +57,7 @@ In main, initialize a car with a low fuel level, call the refuel function, and p
 ---
 
 #### Input Files
-
++
 Two measurement files are provided:
 
 - `sensor1.txt` : Sensor 1 measurements
