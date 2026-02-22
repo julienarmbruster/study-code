@@ -9,7 +9,7 @@ int main() {
 
     int zeichen;
     while ((zeichen = fgetc(datei)) != EOF) {
-        putchar(zeichen); // Gibt das gelesene Zeichen aus
+        putchar(zeichen); 
     }
 
     fclose(datei);
