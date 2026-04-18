@@ -5,23 +5,24 @@
 
 #include "searchEngine.hpp"
 
-#include <algorithm>
 #include <iostream>
 
 int SearchEngine::total_queries = 0;
 
 SearchEngine::SearchEngine()
-    : web_resources(), current_query(), current_search_results()
+    : web_resource_count(0),
+      current_query(),
+      current_search_result_count(0)
 {
 }
 
 void SearchEngine::printInfo() const
 {
     std::cout << "SearchEngine information\n";
-    std::cout << "Indexed resources: " << web_resources.size() << '\n';
+    std::cout << "Indexed resources: " << web_resource_count << '\n';
     std::cout << "Current query: \"" << current_query.getQuery() << "\"\n";
     std::cout << "Stored search results: "
-              << current_search_results.size()
+              << current_search_result_count
               << '\n';
 }
 
@@ -37,7 +38,13 @@ void SearchEngine::incTotalQueries()
 
 void SearchEngine::addResource(const WebResource &resource)
 {
-    web_resources.push_back(resource);
+    if (web_resource_count >= MAX_WEB_RESOURCES)
+    {
+        return;
+    }
+
+    web_resources[web_resource_count] = resource;
+    web_resource_count++;
 
     if (current_query.isValid())
     {
@@ -47,16 +54,28 @@ void SearchEngine::addResource(const WebResource &resource)
 
 void SearchEngine::removeResource(const std::string &url)
 {
-    std::vector<WebResource>::iterator new_end =
-        std::remove_if(
-            web_resources.begin(),
-            web_resources.end(),
-            [&url](const WebResource &resource)
-            {
-                return resource.getUrl() == url;
-            });
+    int found_index = -1;
 
-    web_resources.erase(new_end, web_resources.end());
+    for (int index = 0; index < web_resource_count; index++)
+    {
+        if (web_resources[index].getUrl() == url)
+        {
+            found_index = index;
+            break;
+        }
+    }
+
+    if (found_index == -1)
+    {
+        return;
+    }
+
+    for (int index = found_index; index < web_resource_count - 1; index++)
+    {
+        web_resources[index] = web_resources[index + 1];
+    }
+
+    web_resource_count--;
 
     if (current_query.isValid())
     {
@@ -64,7 +83,7 @@ void SearchEngine::removeResource(const std::string &url)
     }
     else
     {
-        current_search_results.clear();
+        current_search_result_count = 0;
     }
 }
 
@@ -84,29 +103,46 @@ void SearchEngine::setCurrentQuery(const SearchQuery &query)
     }
     else
     {
-        current_search_results.clear();
+        current_search_result_count = 0;
     }
 }
 
-std::vector<WebResource> SearchEngine::getSearchResults() const
+WebResource SearchEngine::getSearchResult(int index) const
 {
-    return current_search_results;
+    if ((index < 0) || (index >= current_search_result_count))
+    {
+        return WebResource();
+    }
+
+    return current_search_results[index];
+}
+
+int SearchEngine::getSearchResultCount() const
+{
+    return current_search_result_count;
 }
 
 void SearchEngine::sortCurrentResources()
 {
-    std::sort(
-        current_search_results.begin(),
-        current_search_results.end(),
-        [](const WebResource &left, const WebResource &right)
+    for (int outer_index = 0; outer_index < current_search_result_count - 1; outer_index++)
+    {
+        for (int inner_index = 0; inner_index < current_search_result_count - 1 - outer_index; inner_index++)
         {
-            return left.getRanking() > right.getRanking();
-        });
+            if (current_search_results[inner_index].getRanking() <
+                current_search_results[inner_index + 1].getRanking())
+            {
+                WebResource temp = current_search_results[inner_index];
+                current_search_results[inner_index] =
+                    current_search_results[inner_index + 1];
+                current_search_results[inner_index + 1] = temp;
+            }
+        }
+    }
 }
 
 void SearchEngine::printRelevantResults() const
 {
-    if (current_search_results.empty())
+    if (current_search_result_count == 0)
     {
         std::cout << "No relevant results found.\n";
         return;
@@ -116,7 +152,7 @@ void SearchEngine::printRelevantResults() const
               << current_query.getQuery()
               << "\"\n";
 
-    for (std::size_t index = 0; index < current_search_results.size(); index++)
+    for (int index = 0; index < current_search_result_count; index++)
     {
         const WebResource &resource = current_search_results[index];
 
@@ -142,25 +178,26 @@ bool SearchEngine::queryInResource(
 
 void SearchEngine::updateCurrentSearchResults()
 {
-    current_search_results.clear();
+    current_search_result_count = 0;
 
-    for (std::size_t index = 0; index < web_resources.size(); index++)
+    for (int index = 0; index < web_resource_count; index++)
     {
         const WebResource &current_resource = web_resources[index];
 
         if (queryInResource(current_query, current_resource))
         {
-            current_search_results.push_back(current_resource);
+            if (current_search_result_count < MAX_WEB_RESOURCES)
+            {
+                current_search_results[current_search_result_count] = current_resource;
+                current_search_result_count++;
+            }
         }
     }
 
     sortCurrentResources();
 
-    const int max_results = current_query.getMaxResults();
-
-    if (static_cast<int>(current_search_results.size()) > max_results)
+    if (current_search_result_count > current_query.getMaxResults())
     {
-        current_search_results.resize(
-            static_cast<std::size_t>(max_results));
+        current_search_result_count = current_query.getMaxResults();
     }
 }
