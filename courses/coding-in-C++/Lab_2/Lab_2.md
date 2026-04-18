@@ -311,7 +311,7 @@ Each component of the system should provide meaningful functionality, such as:
 - The code should consider OOP best-practices such as abstraction and encapsulation
 
 Additionally, implement the following functionality:
-- Implement a method that performs the actual search feature; e.g.
+- Implement one or more methods that perform the actual search feature; e.g.
    - storing several web resources inside the search engine
    - checking whether the query text is contained in the text content of a resource
    - sorting all matching resources by ranking in descending order
