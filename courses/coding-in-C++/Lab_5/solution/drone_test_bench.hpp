@@ -67,8 +67,8 @@ T min(T frame[], int size)
     return minValue;
 } */
 
-template <int N, typename T>
-T min(T frame[])
+template <typename T, int N>
+T min(T (&frame)[N])
 {
 
     T minValue = frame[0];

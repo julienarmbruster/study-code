@@ -11,7 +11,7 @@ int main()
         return 1;
     }
     printFrame<SIZE>(testFrame);
-    std::cout << min<SIZE>(testFrame) << std::endl;
+    std::cout << min(testFrame) << std::endl;
     composeTags("Channel", "motor_temp", "Priority", 4);
 
     return 0;
