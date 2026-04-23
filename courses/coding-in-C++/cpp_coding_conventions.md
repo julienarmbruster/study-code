@@ -598,7 +598,7 @@ case Command::Stop:
 
 default:
     report_invalid_command();
-    break;
+    // no break if default is last case
 }
 ```
 
@@ -722,7 +722,7 @@ Classes should protect their internal state and expose a clear interface.
 class BankAccount
 {
 private:
-    double m_balance;
+    double balance;
 
 public:
     void deposit(double amount);
