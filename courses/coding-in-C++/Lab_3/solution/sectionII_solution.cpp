@@ -111,7 +111,6 @@ public:
 
 int main()
 {
-
     Student student1("Kai Rosenkranz", 1, 123456);
     Instructor instructor1("Nobuo Uematsu", 99, 10000);
 
