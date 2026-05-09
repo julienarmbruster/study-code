@@ -11,6 +11,8 @@ private:
     const double max_value;
 
 public:
+    // if an exception is thrown from within a constructor
+    // the object in creation is automatically deleted
     Sensor(const std::string &sensor_name,
            double initial_value,
            double minimum_value,
