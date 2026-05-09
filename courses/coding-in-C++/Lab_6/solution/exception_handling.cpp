@@ -91,16 +91,5 @@ int main()
                   << std::endl;
     }
 
-    try
-    {
-        Sensor broken_sensor("Broken Sensor", 50.0, 100.0, 0.0);
-    }
-    catch (const std::exception &error)
-    {
-        std::cout << "Configuration error: "
-                  << error.what()
-                  << std::endl;
-    }
-
     return 0;
 }
