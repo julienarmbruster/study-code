@@ -87,7 +87,8 @@ Examples:
 
 Create three sensors to measure the above mentioned states and intentionally trigger invalid situations.
 
-Use catch blocks directly after the try statements in the main with a ```std::exception``` parameter.
+Use catch blocks directly after the try statements in the main. The catch-statement should use a parameter of type ```std::exception```.
+
 Use the what-method to output the catched exception message.
 
 ### Question
@@ -101,7 +102,8 @@ Extend your program so that different exception types are handled separately.
 
 Also, all catch-statements should be located together - not being called directly after a try-block.
 
-Discuss why the order of `catch` blocks matters.
+- Discuss why the order of `catch` blocks matters.
+- What is the difference between calling every test case in a separate try block or in one common try block.
 
 ---
 
