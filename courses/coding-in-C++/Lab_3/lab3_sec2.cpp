@@ -23,11 +23,10 @@ class Student : public User
 {
     private:
     int mtrNr;
-}
+};
 
 class Instructor : public User
 {
     private:
     int age;
-
-}
+};

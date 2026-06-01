@@ -18,17 +18,21 @@ class Drinkbuilder
 
     Drinkbuilder() : name(""), sugar(0), temperature(0), withMilk(false) {}
     Drinkbuilder(std::string name, int sugar, int tempereture, bool withmilk){}
-    void setName(const std::string& name){
+    Drinkbuilder& setName(const std::string& name){
         this->name = name;
+        return *this;
     }
-    void setSugar(int sugar){
+    Drinkbuilder& setSugar(int sugar){
         this->sugar = sugar;
+        return *this;
     }
-    void setTemperature(int temperature){
+    Drinkbuilder& setTemperature(int temperature){
         this->temperature = temperature;
+        return *this;
     }
-    void setWithMilk(bool withMilk){
+    Drinkbuilder& setWithMilk(bool withMilk){
         this->withMilk = withMilk;
+        return *this;
     }
     void print(){
         std::cout<<"Name:"<<name<<std::endl;
@@ -55,10 +59,16 @@ class Drinkbuilder
 
 int main(){
     Drinkbuilder builder;
+    builder.setName("Espresso").setSugar(20).setTemperature(90).setWithMilk(false);
+    /*
+    Drinkbuilder builder;
     builder.setName("Espresso");
     builder.setSugar(20);
     builder.setTemperature(90);
     builder.setWithMilk(false);
+    
+    */
+    
     if(builder.isValid()){
         builder.print();
     }

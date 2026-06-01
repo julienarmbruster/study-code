@@ -1,7 +1,9 @@
 #ifndef ASSISTANCE_SYSTEM_HPP
 #define ASSISTANCE_SYSTEM_HPP
 
+#include <cmath>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -11,11 +13,10 @@ class DistanceSensor
 {
 private:
     std::string position;
+    double measured_distance_m;
     bool active;
 
 public:
-    double measured_distance_m;
-
     DistanceSensor(const std::string &sensor_position,
                    double initial_distance_m);
 
@@ -36,12 +37,16 @@ public:
 class EmergencyBrakeSystem
 {
 private:
+    static constexpr double EMERGENCY_BRAKE_FORCE_KMH = 30.0;
+
     double critical_distance_m;
+    std::shared_ptr<DistanceSensor> front_sensor;
 
 public:
-    EmergencyBrakeSystem(double critical_distance);
+    EmergencyBrakeSystem(double critical_distance,
+                         std::shared_ptr<DistanceSensor> sensor);
 
-    void evaluate(Vehicle &vehicle, const DistanceSensor &front_sensor) const;
+    void evaluate(Vehicle &vehicle) const;
 };
 
 class LaneKeepingAssist
@@ -59,27 +64,30 @@ public:
 class AdaptiveCruiseControl
 {
 private:
+    static constexpr double SPEED_STEP_KMH = 5.0;
+
     double target_speed_kmh;
     double minimum_distance_m;
+    std::shared_ptr<DistanceSensor> front_sensor;
 
 public:
     AdaptiveCruiseControl(double target_speed,
-                          double minimum_distance);
+                          double minimum_distance,
+                          std::shared_ptr<DistanceSensor> sensor);
 
-    void evaluate(Vehicle &vehicle,
-                  const DistanceSensor &front_sensor) const;
+    void evaluate(Vehicle &vehicle) const;
 };
 
 class ParkingAssistant
 {
 private:
-    std::vector<DistanceSensor *> sensors;
+    std::vector<std::shared_ptr<DistanceSensor>> sensors;
     double warning_distance_m;
 
 public:
     ParkingAssistant(double warning_distance);
 
-    void add_sensor(DistanceSensor *sensor);
+    void add_sensor(std::shared_ptr<DistanceSensor> sensor);
     void print_warnings() const;
 };
 
