@@ -4,3 +4,6 @@ output/
 
 # draw.io Temp-Dateien
 *.dtmp
+
+# Vorlesungsfolien (nur lokal, nicht öffentlich teilen)
+courses/coding-in-C++/Scripte/
