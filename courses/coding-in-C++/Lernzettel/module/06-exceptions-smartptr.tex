@@ -1,0 +1,134 @@
+% ============================================================
+\section{Exceptions \& Smart Pointer (Abschnitt VII)}
+% ============================================================
+In C musste nach fast jedem Aufruf der R\"uckgabewert gepr\"uft werden -- Normal- und Fehlerfall vermischen sich, Kontext fehlt. C\texttt{++} trennt beides mit \textbf{Exceptions}.
+
+\subsection{Exception Handling: \texttt{throw} / \texttt{try} / \texttt{catch}}
+\begin{definition}[: Exception]
+Eine Exception ist ein \textbf{Objekt}, das eine Fehlersituation repr\"asentiert und den normalen Kontrollfluss unterbricht, um an geeigneter Stelle behandelt zu werden.
+\end{definition}
+Ablauf in drei Schritten:
+\begin{itemize}
+  \item \code{try \{ ... \}} -- markiert einen Block, in dem ein Fehler auftreten kann.
+  \item \code{throw obj;} -- wirft eine Exception.
+  \item \code{catch (Typ e) \{ ... \}} -- f\"angt sie und behandelt sie.
+\end{itemize}
+\begin{lstlisting}
+int divide(int a, int b) {
+    if (b == 0) throw std::invalid_argument("Division durch 0");
+    return a / b;
+}
+int main() {
+    try {
+        std::cout << divide(10, 0) << '\n';
+    } catch (const std::exception& error) {   // const Referenz!
+        std::cout << "Fehler: " << error.what();
+    }
+    return 0;   // Programm laeuft nach dem catch normal weiter
+}
+\end{lstlisting}
+\begin{merke}
+Wird eine Exception nicht lokal behandelt, wandert sie den Aufrufstack nach oben (\emph{Stack Unwinding}); dabei werden lokale Objekte korrekt \"uber ihre Destruktoren zerst\"ort. Wird sie \textbf{gar nicht} gefangen, beendet \code{std::terminate()} das Programm. Auf jeden \code{try}-Block muss direkt ein \code{catch}-Block folgen.
+\end{merke}
+
+\subsubsection*{Mehrere catch-Bl\"ocke}
+Werden von oben nach unten gepr\"uft; der erste passende wird ausgef\"uhrt, der Rest \"ubersprungen. Ein allgemeiner Auffangblock steht \textbf{immer am Ende}.
+\begin{lstlisting}
+try { /* ... */ }
+catch (const std::invalid_argument& e) { /* spezifisch */ }
+catch (const std::exception& e)         { /* allgemeiner, bevorzugt */ }
+catch (...)                             { /* letzte Sicherheitsstufe */ }
+\end{lstlisting}
+
+\subsection{Standard-Exceptions}
+Einfache Typen (\code{throw 42;}) sind ungeeignet: keine Aussagekraft, keine Zusatzinfos, schlechte Unterscheidung. Besser: Klassen aus \code{<stdexcept>}, die von \code{std::exception} erben und die virtuelle Methode \code{what()} besitzen.
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Kategorie} & \textbf{Beispiele} \\
+\midrule
+Logische Fehler / ung\"ultige Eingaben & \code{invalid\_argument}, \code{length\_error}, \code{logic\_error} \\
+Laufzeitfehler & \code{runtime\_error}, \code{overflow\_error}, \code{out\_of\_range} \\
+Speicher- \& Typfehler & \code{bad\_alloc}, \code{bad\_cast} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Eigene Exception-Klassen}
+F\"ur fachlich spezifische Fehler -- erben von einer passenden Standard-Exception.
+\begin{lstlisting}
+class DivByZeroErr : public std::logic_error {
+public:
+    DivByZeroErr() : std::logic_error("Division durch 0") {}
+};
+// throw DivByZeroErr();
+// catch (const DivByZeroErr& error) { std::cout << error.what(); }
+\end{lstlisting}
+\begin{tipp}[: Leitlinien]
+\begin{itemize}
+  \item Standard-Exceptions bevorzugen; eigene Klassen nur bei fachlich relevanten Fehlern.
+  \item \textbf{Be specific} -- die spezifischste sinnvolle Exception werfen.
+  \item \code{try}-Bl\"ocke klein halten; \code{catch} dort, wo man den Fehler versteht.
+  \item Exceptions \textbf{als \code{const} Referenz} fangen (verhindert \emph{Object Slicing}).
+  \item \code{catch (const std::exception\& e)} ist besser als \code{catch (...)}.
+\end{itemize}
+\end{tipp}
+
+\subsection{RAII -- Resource Acquisition Is Initialization}
+\begin{definition}[: RAII]
+Eine Ressource (Speicher, Datei, DB-Verbindung, \dots) wird beim \textbf{Erzeugen} eines Objekts erworben und beim \textbf{Zerst\"oren} automatisch freigegeben -- Ressourcen sind an die Objektlebensdauer gebunden. Umgesetzt \"uber Konstruktor + Destruktor.
+\end{definition}
+\begin{lstlisting}
+class File {
+    FILE* f;
+public:
+    File(const std::string& name) { f = fopen(name.c_str(), "r"); }
+    ~File() { if (f) fclose(f); }     // wird IMMER aufgerufen, auch bei Exception
+};
+void foo() {
+    File f("test.txt");
+    if (error) return;                // Datei wird trotzdem sauber geschlossen
+}
+\end{lstlisting}
+Vorteile: keine Memory Leaks, Exception-Sicherheit, klarer Besitz, bessere Wartbarkeit. Voraussetzung: Objekt ist \textbf{lokal} (kein roher \code{new}-Pointer ohne Lebensdauerverwaltung).
+
+\subsection{Smart Pointer}\label{sec:smartptr}
+Rohe Pointer verursachen Memory Leaks, Dangling Pointer, Double-Free und unklare Besitzverh\"altnisse. \emph{Smart Pointer} (Wrapper-Klassen aus \code{<memory>}) verhalten sich wie Pointer (\"uberladen \code{*} und \code{->}), \"ubernehmen aber die Speicherverwaltung automatisch (RAII) und rufen selbst\"andig \code{delete} auf.
+\begin{center}\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+ & \textbf{Besitz} & \textbf{\#Besitzer} & \textbf{Z\"ahler} & \textbf{Zerst\"orung} \\
+\midrule
+\code{unique\_ptr} & exklusiv & genau 1 & nein & beim Verlassen des Besitzers \\
+\code{shared\_ptr} & geteilt & beliebig & ja & wenn letzter \code{shared\_ptr} weg \\
+\code{weak\_ptr} & kein Besitz & 0 & nutzt, erh\"oht nicht & nie \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{\texttt{std::unique\_ptr} -- exklusiver Besitz}
+\begin{lstlisting}
+auto p1 = std::make_unique<int>(5);   // reserviert intern mit new
+// auto p2 = p1;                      // FEHLER: Kopieren verboten
+auto p2 = std::move(p1);              // Besitz uebertragen -> p1 == nullptr
+\end{lstlisting}
+Kein manuelles \code{delete} mehr (keine Double-Delete-Gefahr). Verwendung ohne Besitz\"ubergabe: \code{print(*p)} (Referenz) oder \code{foo(p.get())} (roher Pointer, Besitz bleibt bei \code{p}). Ideal f\"ur Kompositionen und \"uberall, wo fr\"uher \code{new} stand -- so effizient wie ein roher Pointer.
+
+\subsubsection*{\texttt{std::shared\_ptr} -- geteilter Besitz}
+\begin{lstlisting}
+auto p1 = std::make_shared<int>(5);
+auto p2 = p1;                  // beide besitzen; Zaehler = 2
+std::cout << p1.use_count();   // Referenzzaehler abfragen
+\end{lstlisting}
+Das Objekt wird erst gel\"oscht, wenn der \textbf{letzte} Besitzer verschwindet (\emph{Referenzz\"ahler}). Langsamer als ein roher Pointer wegen des Z\"ahlers.
+
+\subsubsection*{\texttt{std::weak\_ptr} -- l\"ost das Zyklusproblem}
+Besitzen sich zwei \code{shared\_ptr} gegenseitig (A$\to$B, B$\to$A), bleibt der Z\"ahler stets $>0$ -- die Destruktoren laufen nie (Memory Leak). Ein \code{weak\_ptr} zeigt auf ein von \code{shared\_ptr} verwaltetes Objekt, \textbf{erh\"oht den Z\"ahler aber nicht}.
+\begin{lstlisting}
+std::shared_ptr<A> temp = objB->a.lock();  // weak_ptr nicht direkt dereferenzierbar
+if (temp) { /* Objekt existiert noch */ }  // sonst temp == nullptr
+\end{lstlisting}
+\begin{merke}
+Faustregel: \textbf{Wann immer eine Klasse/Funktion eine Ressource besitzt, Smart Pointer verwenden.} \code{unique\_ptr} als Standard (exklusiv), \code{shared\_ptr} nur bei echtem geteiltem Besitz, \code{weak\_ptr} zum Aufbrechen von Zyklen.
+\end{merke}
+\clearpage

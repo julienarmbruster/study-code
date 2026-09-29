@@ -1,0 +1,132 @@
+% ============================================================
+\section{UML-Notation $\leftrightarrow$ C\texttt{++} (Spickzettel)}
+% ============================================================
+Dieser Abschnitt beantwortet die Frage \emph{,,wo schreibe ich was hin?''}: An welche \textbf{Position} in einem Klassendiagramm geh\"oren Ein- und Ausgabewerte, und mit welchem Symbol werden \code{const}, \code{static}, \code{virtual} usw. dargestellt -- jeweils mit der direkten \"Ubersetzung nach C\texttt{++}.
+
+\subsection{Aufbau einer Klasse: die drei Felder}
+Eine Klasse ist ein Rechteck mit (bis zu) drei Abschnitten. Merksatz: \textbf{oben = wer}, \textbf{Mitte = was es hat}, \textbf{unten = was es kann}.
+\begin{description}
+  \item[1. Name] Klassenname (abstrakte Klasse: \emph{kursiv}).
+  \item[2. Attribute] Daten / Zustand des Objekts.
+  \item[3. Methoden] Operationen / Verhalten des Objekts.
+\end{description}
+
+\subsection{Wo kommen Ein- und Ausgabewerte hin?}
+Das ist der wichtigste Merksatz: \textbf{Eingabewerte stehen in den Klammern} \code{( \dots )}, \textbf{der Ausgabewert (R\"uckgabe) steht hinter dem Doppelpunkt nach den Klammern} \code{) : Typ}. Die vollst\"andige Operations-Signatur lautet:
+\begin{syntaxbox}[: Methoden-Signatur in UML]
+\code{sichtbarkeit name(richtung param : Typ = default, \dots) : R\"uckgabetyp \{Eigenschaft\}} \\
+\code{+ einzahlen(in betrag : double) : bool \{ \}}
+\end{syntaxbox}
+
+Vor jedem Parameter darf eine \textbf{Richtung} stehen -- genau das ist das ,,Ein-/Ausgabe''-Konzept:
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{UML-Richtung} & \textbf{Bedeutung} & \textbf{C\texttt{++}-Umsetzung} \\
+\midrule
+\code{in} (Default) & reiner \textbf{Eingabewert}, Methode liest nur & Wert: \code{double x}\,; gro\ss e Objekte: \code{const T\& x} \\
+\code{out}   & reiner \textbf{Ausgabewert}, Methode schreibt zur\"uck & nicht-const Referenz/Zeiger: \code{T\& x} / \code{T* x} \\
+\code{inout} & \textbf{rein und wieder raus} (gelesen \emph{und} ge\"andert) & nicht-const Referenz: \code{T\& x} \\
+\code{return} & der eigentliche \textbf{R\"uckgabewert} & R\"uckgabetyp der Funktion \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\begin{lstlisting}
+// UML:  + tausche(inout a : int, inout b : int)
+void tausche(int& a, int& b);
+
+// UML:  + teile(in z : int, in n : int, out rest : int) : int
+int teile(int z, int n, int& rest);   // Quotient via return, Rest via out-Param
+
+// UML:  + getSaldo() : double {query}
+double getSaldo() const;              // nur Rueckgabewert, kein Eingabeparameter
+\end{lstlisting}
+\begin{merke}
+Steht keine Richtung da, gilt automatisch \code{in}. Den R\"uckgabewert schreibt man fast immer als \code{) : Typ} ans Ende -- \code{return} als Parameter-Richtung ist zwar erlaubt, aber un\"ublich. Ein \textbf{Defaultwert} kommt mit \code{= wert} in die Klammer: \code{+ setVolume(in v : int = 50)} $\rightarrow$ \code{void setVolume(int v = 50);}
+\end{merke}
+
+\subsection{Attribut-Syntax (Mittelfeld)}
+\begin{syntaxbox}[: Attribut in UML]
+\code{sichtbarkeit /name : Typ [Multiplizit\"at] = Default \{Eigenschaft\}} \\
+\code{- saldo : double = 0.0} \qquad \code{+ PI : double = 3.14159 \{readOnly\}}
+\end{syntaxbox}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Element} & \textbf{C\texttt{++}} \\
+\midrule
+Typ \code{: double} & \code{double saldo;} \\
+Defaultwert \code{= 0.0} & \code{double saldo = 0.0;} \\
+\code{\{readOnly\}} / \code{\{frozen\}} & \code{const double PI = 3.14159;} \\
+\code{/name} (abgeleitet/berechnet) & \textbf{kein} eigenes Attribut -- berechneter Getter (\code{int getAlter() const}) \\
+Multiplizit\"at \code{[0..*]} & Container: \code{std::vector<Item> items;} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Die gro\ss e Mapping-Tabelle: UML $\leftrightarrow$ C\texttt{++}}
+Deine Nachschlage-Liste f\"ur \code{const} / \code{static} / \code{virtual} \& Co.:
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Konzept} & \textbf{UML-Notation} & \textbf{C\texttt{++}} \\
+\midrule
+public    & \code{+} vor dem Member & \code{public:} \\
+private   & \code{-} vor dem Member & \code{private:} \\
+protected & \code{\#} vor dem Member & \code{protected:} \\
+package   & \code{\textasciitilde} vor dem Member & (kein echtes \"Aquivalent) \\
+\textbf{static} (Klassen-Member) & Member \underline{unterstrichen} & \code{static} (vor Typ); Def.\ au\ss erhalb \\
+\textbf{const}-Methode (\"andert Zustand nicht) & \code{\{query\}} hinter der Methode & \code{const} \emph{hinter} der Parameterliste: \code{double getSaldo() const;} \\
+\textbf{const}-Attribut & \code{\{readOnly\}} / \code{\{frozen\}} & \code{const} \emph{vor} dem Typ: \code{const int MAX;} \\
+\textbf{abstrakte} Methode (rein virtuell) & Methode \emph{kursiv} oder \code{\{abstract\}} & \code{virtual \dots\ = 0;} \\
+\textbf{abstrakte} Klasse & Klassenname \emph{kursiv} / \code{<<abstract>>} & Klasse mit $\geq 1$ rein virtuellen Methode \\
+Interface & Stereotyp \code{<<interface>>} & abstrakte Klasse, \textbf{nur} rein virtuelle Methoden \\
+\textbf{virtual} (\"uberschreibbar, nicht rein) & \emph{keine} eigene Notation (UML: alles implizit virtuell) & \code{virtual void f();} \\
+nicht \"uberschreibbar & \code{\{leaf\}} & \code{final} \\
+abgeleitetes Attribut & \code{/name} & berechnet im Getter, kein Feld \\
+Defaultwert / Default-Argument & \code{= wert} & \code{int v = 50} \\
+Konstruktor & Name = Klassenname, evtl.\ \code{<<constructor>>} & \code{Konto(\dots)}, kein R\"uckgabetyp \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\begin{merke}
+Stolperfalle \code{virtual}: F\"ur ein einfaches \code{virtual} (\"uberschreibbar, aber \emph{mit} Implementierung) gibt es in UML \textbf{kein} eigenes Symbol -- UML behandelt alle Methoden ohnehin als virtuell. Markiert (kursiv / \code{= 0}) wird nur das \textbf{Abstrakte}. Ob eine konkrete Methode in C\texttt{++} \code{virtual} ist, l\"asst das Diagramm offen. (Details zu \code{virtual}/\code{override} im Polymorphie-Abschnitt.)
+\end{merke}
+
+\subsection{Komplettbeispiel: UML $\rightarrow$ C\texttt{++}}
+\begin{syntaxbox}[: Klasse \texttt{Konto} in UML]
+\code{- saldo : double = 0.0} \quad (Defaultwert) \\
+\code{anzahlKonten : int} \quad (\underline{unterstrichen} $\rightarrow$ static) \\
+\code{+ Konto(in name : string)} \quad (Konstruktor) \\
+\code{+ einzahlen(in betrag : double)} \quad (in-Parameter) \\
+\code{+ getSaldo() : double \{query\}} \quad (R\"uckgabe + const) \\
+\code{+ getAnzahl() : int} \quad (\underline{unterstrichen} $\rightarrow$ static-Methode)
+\end{syntaxbox}
+\begin{lstlisting}
+class Konto {
+private:
+    double saldo = 0.0;              // = 0.0   -> Defaultwert
+    std::string inhaber;
+    static int anzahlKonten;         // unterstrichen -> static
+
+public:
+    Konto(std::string name)          // Konstruktor: kein Rueckgabetyp
+        : inhaber(name) { anzahlKonten++; }
+
+    void einzahlen(double betrag);   // in betrag -> by value
+
+    double getSaldo() const {        // {query} -> const HINTER der Klammer
+        return saldo;
+    }
+
+    static int getAnzahl() {         // unterstrichen -> static
+        return anzahlKonten;         // kein this, nur statische Member
+    }
+};
+
+int Konto::anzahlKonten = 0;         // static-Definition ausserhalb (Pflicht!)
+\end{lstlisting}
+\begin{merke}
+Kurzformel zum Merken: \textbf{Eingabe} $\rightarrow$ in die Klammern, \textbf{Ausgabe (R\"uckgabe)} $\rightarrow$ hinter \code{) :}. \code{const}-Methode = \code{\{query\}} und steht \emph{hinter} der Parameterliste; \code{const}-Attribut = \code{\{readOnly\}} und steht \emph{vor} dem Typ. \code{static} = unterstrichen, \emph{kursiv} = abstrakt.
+\end{merke}
+\clearpage

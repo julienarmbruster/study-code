@@ -1,0 +1,73 @@
+% ============================================================
+\section{Schnell\"ubersicht (Cheat-Sheet)}
+% ============================================================
+Eine Seite zum schnellen Nachschlagen beim Programmieren. Details stehen in den jeweiligen Abschnitten.
+
+\subsection*{Programmger\"ust \& Kompilieren}
+\begin{lstlisting}
+#include <iostream>          // Bibliothek einbinden
+int main() {                 // Einstiegspunkt
+    std::cout << "Hallo\n";  // Ausgabe
+    return 0;                // 0 = Erfolg
+}
+\end{lstlisting}
+\code{g++ -std=c++17 -Wall main.cpp -o main} \quad kompilieren \& Warnungen an.
+
+\subsection*{Wichtigste Syntax auf einen Blick}
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Thema} & \textbf{Kurzform} \\
+\midrule
+Ausgabe / Eingabe & \code{std::cout << x;} \quad \code{std::cin >> x;} \\
+Referenz (Alias) & \code{int\& r = a;} \quad keine Kopie, nie \code{nullptr} \\
+Konstante & \code{const double PI = 3.14159;} \\
+Klasse & \code{class A \{ public: ... private: ... \};} \\
+Konstruktor (Init-Liste) & \code{A(int x) : x\_(x) \{\}} \\
+Vererbung & \code{class B : public A \{ ... \};} \\
+Virtuelle Methode & \code{virtual void f();} + \code{void f() override;} \\
+Abstrakt / Interface & \code{virtual void f() = 0;} \\
+Template & \code{template<typename T> T max(T a, T b);} \\
+Container & \code{std::vector<int> v\{1,2,3\};} \\
+Iteration & \code{for (auto\& e : v) \{ ... \}} \\
+Exception & \code{throw std::runtime\_error("...");} / \code{try\{\}catch(...)\{\}} \\
+Smart Pointer & \code{auto p = std::make\_unique<A>(...);} \\
+Cast & \code{static\_cast<int>(x)} \quad (nie C-Cast \code{(int)x}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Faustregeln (Best Practices)}
+\begin{multicols}{2}
+\begin{itemize}
+  \item Variablen \textbf{sofort initialisieren}, Scope klein halten.
+  \item Member sind \textbf{privat}; Zugriff \"uber Methoden.
+  \item Methoden, die nichts \"andern, als \code{const} markieren.
+  \item Gro\ss e Objekte per \code{const\&} \"ubergeben, kleine per Wert.
+  \item \code{nullptr} statt \code{NULL}; \code{enum class} statt \code{enum}.
+  \item \"Uberschriebene Methoden mit \code{override} kennzeichnen.
+  \item Polymorphe Basisklasse braucht \textbf{virtuellen Destruktor}.
+  \item Kein manuelles \code{new}/\code{delete} -- Smart Pointer / RAII.
+  \item Magische Zahlen durch benannte Konstanten ersetzen.
+  \item Eine Klasse / eine Funktion = \textbf{eine Verantwortung}.
+\end{itemize}
+\end{multicols}
+
+\subsection*{Komplexit\"at h\"aufiger Operationen}
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+ & \texttt{vector} & \texttt{map} (balanciert) & Bubble/Selection/Insertion \\
+\midrule
+Zugriff per Index & $O(1)$ & --- & --- \\
+Suche & $O(n)$ & $O(\log n)$ & --- \\
+Einf\"ugen am Ende & $O(1)^{*}$ & $O(\log n)$ & --- \\
+Sortieren (\texttt{std::sort}) & $O(n\log n)$ & --- & $O(n^2)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+{\footnotesize $^{*}$ amortisiert; gelegentliches Reallozieren.}
+
+\bigskip
+\noindent\textit{Tipp: Das Inhaltsverzeichnis (oben) ist verlinkt -- direkt zum gesuchten Thema springen.}
+\clearpage

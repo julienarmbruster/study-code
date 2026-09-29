@@ -1,0 +1,111 @@
+% ============================================================
+\section{UML \& Vererbung (Abschnitt IV)}
+% ============================================================
+\textbf{UML} (Unified Modeling Language, aktuell 2.5.1, ISO/IEC 19505) ist eine grafische Modellierungssprache zur Konstruktion und Dokumentation von Software. Sie erg\"anzt Flussdiagramme: W\"ahrend Flussdiagramme \emph{sequentielle Abl\"aufe} zeigen, beantworten Klassendiagramme \emph{,,Wer macht was und wie h\"angt alles zusammen?''}.
+
+\subsection{Klassendiagramme}
+Eine Klasse ist ein Rechteck mit bis zu drei Abschnitten: \textbf{Name} / \textbf{Attribute} / \textbf{Methoden (Operationen)}. Eine zeitliche Abfolge wird nicht dargestellt.
+
+\subsubsection*{Sichtbarkeit (Visibility)}
+\begin{center}\small
+\begin{tabular}{@{}cll@{}}
+\toprule
+\textbf{Symbol} & \textbf{Name} & \textbf{Sichtbar} \\
+\midrule
+\code{+} & public    & \"uberall \\
+\code{-} & private   & nur in der Klasse \\
+\code{\#} & protected & in Klasse \& abgeleiteten Klassen \\
+\code{\textasciitilde} & package & im gesamten Paket \\
+\bottomrule
+\end{tabular}
+\end{center}
+Weitere Notation: Datentyp/R\"uckgabetyp nach \code{:}\,; \textbf{statische} Member werden \underline{unterstrichen}; \textbf{abgeleitete} Attribute (berechnet) mit \code{/} (z.\,B. \code{/alter}); erweiterte Eigenschaften in \code{\{ \}} (z.\,B. \code{readOnly}, \code{ordered}). Die Methodeneigenschaft \code{\{query\}} entspricht in C\texttt{++} einer \code{const}-Methode.
+
+\begin{syntaxbox}[: Attribut / Methode in UML]
+\code{sichtbarkeit name : Typ [= Default] \{Eigenschaften\}} \\
+\code{+ berechne(in x : int) : double \{query\}}
+\end{syntaxbox}
+
+\subsection{Objektdiagramme}
+Ein Objektdiagramm ist ein \emph{Snapshot} -- es zeigt konkrete Instanzen (Objekte) zu einem Zeitpunkt. Unterschiede zum Klassendiagramm: Objektname ist \underline{unterstrichen} (\code{myCar : Car}), Attribute haben nur \textbf{konkrete Werte}, Methoden werden \textbf{nicht} aufgelistet, keine Sichtbarkeit/Multiplizit\"at. Instanzen von Assoziationen hei\ss en \emph{Links}.
+
+\subsection{Beziehungen zwischen Klassen}
+Neben individuellen Eigenschaften definieren sich Objekte \"uber ihre \emph{Beziehungen}. Die drei Formen unterscheiden sich in der \textbf{St\"arke der Bindung}.
+
+% --- Screenshot: Vergleich Assoziation/Aggregation/Komposition ---
+\folie{0.85}{uml_beziehungen}{Assoziation, Aggregation und Komposition im Vergleich (Vorlesungsfolien Abschnitt IV).}
+
+\begin{description}
+  \item[Assoziation] allgemeine Beziehung (,,kennt'', ,,verwendet''). Lose gekoppelt, oft \"uber Pointer/Referenzen, \textbf{unabh\"angige} Lebensdauer. UML: einfache Linie, Pfeil zur bekannten Klasse.
+  \item[Aggregation] ,,Ganzes-Teile''-Beziehung mit \textbf{schwachem} (nicht exklusivem) Besitz; Teile k\"onnen unabh\"angig existieren. UML: Linie mit \textbf{leerer Raute} auf der Seite des Ganzen.
+  \item[Komposition] ,,besteht aus'' -- \textbf{starker, exklusiver} Besitz; Teile existieren nur mit dem Ganzen (gleiche Lebensdauer), meist direkte Member. UML: Linie mit \textbf{ausgef\"ullter Raute} auf der Seite des Ganzen.
+\end{description}
+
+\begin{lstlisting}
+class Plane { Pilot* pilot; };          // Assoziation: kennt, unabhaengig
+class Team  { Player* players; };       // Aggregation: hat, unabhaengig
+class Plane { Engine engines[4]; };     // Komposition: besteht aus, gekoppelt
+\end{lstlisting}
+
+\subsubsection*{Multiplizit\"at}
+Wie viele Instanzen stehen in Beziehung? Default ist \code{1}.
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Notation} & \textbf{Bedeutung} \\
+\midrule
+\code{1} / \code{m} & genau eins / genau $m$ \\
+\code{*} (\code{0..*}) & beliebig viele \\
+\code{1..*} & mindestens eins \\
+\code{0..1} & optional (0 oder 1) \\
+\code{n..m} & Bereich (z.\,B. 2 bis 5) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vererbung}
+Vererbung modelliert eine \textbf{,,ist-ein''-Beziehung}: Eine \emph{Kind-/Unterklasse} (Derived) erbt Attribute und Methoden der \emph{Eltern-/Basisklasse} (Base) und kann sie erweitern oder spezialisieren.
+\begin{syntaxbox}
+\code{class Derived : public Base \{ ... \};}
+\end{syntaxbox}
+
+\begin{merke}
+Der Zugriffsspezifizierer \code{protected} ist die Mischform: \code{protected}-Member sind in der eigenen Klasse \textbf{und} in abgeleiteten Klassen sichtbar -- aber nicht von au\ss en. \code{private}-Member sind \textbf{nie} in der abgeleiteten Klasse sichtbar.
+\end{merke}
+
+\subsubsection*{Vererbungsart (Zugriffsspezifizierer nach dem \texttt{:})}
+Steuert, wie geerbte Member in der abgeleiteten Klasse sichtbar werden:
+\begin{center}\small
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Vererbung} & \code{public} aus Base & \code{protected} aus Base & \code{private} aus Base & \textbf{Bedeutung} \\
+\midrule
+\code{: public}    & bleibt public    & bleibt protected & nicht sichtbar & ,,Derived \emph{ist ein} Base'' \\
+\code{: protected} & wird protected   & bleibt protected & nicht sichtbar & basiert auf Base (verborgen) \\
+\code{: private}   & wird private     & wird private     & nicht sichtbar & nutzt Base intern \\
+\bottomrule
+\end{tabular}
+\end{center}
+\code{public} ist der Standard- und Normalfall.
+
+\subsubsection*{Konstruktoren \& Destruktoren bei Vererbung}
+\begin{itemize}
+  \item Der Konstruktor der \textbf{Basisklasse wird zuerst} aufgerufen, dann der der abgeleiteten Klasse.
+  \item Hat die Basisklasse \textbf{keinen} Default-Konstruktor, muss die abgeleitete Klasse explizit einen passenden Basiskonstruktor aufrufen.
+  \item Destruktoren werden \textbf{nicht vererbt} und laufen in \textbf{umgekehrter} Reihenfolge (erst Derived, dann Base).
+\end{itemize}
+\begin{lstlisting}
+class Base {
+    int a;
+public:
+    Base(int a) : a(a) {}
+};
+class Derived : public Base {
+public:
+    Derived(int a) : Base(a) {}   // Basiskonstruktor explizit aufrufen (Pflicht!)
+};
+\end{lstlisting}
+\begin{merke}
+Reihenfolge: \textbf{Konstruktion} Base $\rightarrow$ Derived, \textbf{Destruktion} Derived $\rightarrow$ Base. In UML hei\ss t Vererbung \emph{Generalisierung}: Linie mit \textbf{leerer Dreieckspitze}, die stets auf die \textbf{Basisklasse} zeigt.
+\end{merke}
+\clearpage

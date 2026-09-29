@@ -1,0 +1,6 @@
+# Build-Ausgaben der VS Code Tasks
+output/
+*.exe
+
+# draw.io Temp-Dateien
+*.dtmp

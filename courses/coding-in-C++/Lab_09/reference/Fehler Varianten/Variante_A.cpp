@@ -13,7 +13,7 @@ int main() {
     int n = 4;
 
     for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j <= n - 1; j++) {
+        for (int j = 0; j < n - 1; j++) {//fehler zuerst war <= dann geht j+1 über das array hinaus
             if (arr[j] < arr[j + 1]) {
                 int temp = arr[j];
                 arr[j] = arr[j + 1];

@@ -1,0 +1,158 @@
+% ============================================================
+\section{Von C zu C\texttt{++} (Abschnitt II)}
+% ============================================================
+C\texttt{++} ist eine \emph{evolution\"are} Erweiterung von C (Bjarne Stroustrup, ``C with Classes''), aber \textbf{keine Obermenge}: Nicht jeder C-Code l\"auft unverändert unter C\texttt{++}. Designziele waren \emph{Zero-Overhead} (keine versteckten Laufzeitkosten, keine Garbage Collection) und \emph{Abstraktion ohne Performanceverlust}.
+
+\begin{merke}
+Zentrale Neuerungen gegen\"uber C: \textbf{Namespaces}, st\"arkere \textbf{Typsicherheit} (weniger implizite Casts), \textbf{Referenzen}, neue Typen \code{bool} und \code{std::string}, sowie die Ein-/Ausgabe-Bibliothek \code{<iostream>} (\code{std::cout} / \code{std::cin}).
+\end{merke}
+
+\subsection{Dateiendungen}
+\begin{itemize}
+  \item Reiner C\texttt{++}-Quellcode: \textbf{\code{.cpp}}; zugeh\"origer Header: \textbf{\code{.hpp}}.
+  \item \code{.h} nur, wenn der Header auch von C genutzt werden soll (Portabilit\"at).
+  \item Nie den veralteten Header \code{<iostream.h>} verwenden.
+\end{itemize}
+
+\subsection{Namespaces}
+Ein \emph{Namespace} b\"undelt Code unter einem Bezeichner und verhindert Namenskonflikte / Shadowing in gro\ss en Projekten.
+\begin{syntaxbox}
+\code{namespace name \{ ... \}} \quad Zugriff: \code{name::member}
+\end{syntaxbox}
+\begin{lstlisting}
+namespace mathe { int wert = 10; }
+int main() {
+    int wert = mathe::wert;     // gleicher Name moeglich
+}
+\end{lstlisting}
+\begin{tipp}
+\code{using namespace std;} spart Schreibarbeit, aber \textbf{nur in kleinen Programmen} verwenden -- in gro\ss en Projekten drohen Namenskonflikte. Besser explizit \code{std::} schreiben.
+\end{tipp}
+
+\subsection{Standard-Ausgabe: \texttt{std::cout} und \texttt{<<}}
+Alle Definitionen aus \code{<iostream>} liegen im Namespace \code{std}. Der \emph{Einf\"ugeoperator} \code{<<} schiebt Daten in den Ausgabestrom (von rechts nach links lesbar).
+\begin{lstlisting}
+std::cout << "Summe: " << a + b << '\n';   // mehrere Werte verketten
+\end{lstlisting}
+
+\subsubsection*{Manipulatoren}
+Manipulatoren formatieren die Ausgabe. Standard-Manipulatoren stecken in \code{<iostream>}, parametrisierte (z.\,B. \code{setw}) in \code{<iomanip>}.
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Manipulator} & \textbf{Wirkung} \\
+\midrule
+\code{std::endl} & Zeilenumbruch + Puffer leeren (langsamer als \code{'\textbackslash n'}) \\
+\code{std::boolalpha} & gibt \code{true}/\code{false} statt \code{1}/\code{0} aus \\
+\code{std::fixed} / \code{scientific} & Festkomma- bzw.\ Exponentialformat \\
+\code{std::left} / \code{right} & B\"undigkeit (Standard: rechts) \\
+\code{std::hex} / \code{dec} / \code{oct} & Zahlensystem \\
+\code{std::setw(n)} & Feldbreite $n$ (\textbf{nicht} sticky!) \\
+\code{std::setprecision(n)} & Anzahl Nachkommastellen \\
+\code{std::setfill('c')} & F\"ullzeichen \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{merke}
+Manipulatoren sind \emph{sticky/persistent} -- sie gelten bis auf Widerruf. \textbf{Einzige Ausnahme:} \code{setw(n)} wirkt nur auf die n\"achste Ausgabe. F\"ur Performance \code{'\textbackslash n'} statt \code{std::endl} nutzen.
+\end{merke}
+
+\subsection{Echter \texttt{bool}-Typ}
+\code{bool} ist ein eigener fundamentaler Datentyp mit den Werten \code{true} (intern 1) und \code{false} (intern 0). Boolesche Ausdr\"ucke liefern \code{bool}.
+\begin{lstlisting}
+bool aktiv = true;
+bool groesser = (5 > 0);   // speichert true
+\end{lstlisting}
+
+\subsection{Strings: \texttt{std::string}}
+In C gab es nur \code{char}-Arrays mit \code{'\textbackslash 0'}-Terminator (Buffer-Overflow-Gefahr, feste Gr\"o\ss e). \code{std::string} aus \code{<string>} w\"achst dynamisch und ist sicher.
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Operation} & \textbf{C\texttt{++}} & \textbf{statt C} \\
+\midrule
+Zuweisung & \code{s1 = s2;} & \code{strcpy} \\
+Verkettung & \code{s1 + s2}, \code{s1 += "x"} & \code{strcat} \\
+Vergleich & \code{s1 == s2} & \code{strcmp} \\
+L\"ange & \code{s1.length()} & --- \\
+Suche & \code{s1.find("text")} & --- \\
+Teilstring & \code{s1.substr(start, len)} & --- \\
+zu C-String & \code{s1.c\_str()} & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{tipp}
+\code{<string>} immer explizit einbinden, auch wenn es \"uber \code{<iostream>} manchmal schon verf\"ugbar ist -- das ist kein garantiertes Verhalten.
+\end{tipp}
+
+\subsection{Standard-Eingabe: \texttt{std::cin} und \texttt{>>}}
+\code{std::cin} nutzt den \emph{Extraktionsoperator} \code{>>}; die Daten flie\ss en in die Variable. Vorteile gegen\"uber \code{scanf}: Typsicherheit (kein \code{\%d}), kein Adressoperator \code{\&}, automatisches \"Uberspringen f\"uhrender Leerzeichen.
+\begin{lstlisting}
+int a, b;
+std::cin >> a >> b;   // Eingaben verkettbar; stoppt bei Leerzeichen/Umbruch
+\end{lstlisting}
+
+\subsubsection*{Fehlerbehandlung des Streams}
+Passt der Typ nicht (z.\,B. \code{"ABC"} statt \code{int}), setzt \code{cin} sein \emph{Fail-Bit}: alle weiteren \code{cin}-Aufrufe werden \"ubersprungen, die Falscheingabe bleibt im Puffer.
+\begin{lstlisting}
+#include <limits>
+int alter;
+if (!(std::cin >> alter)) {              // Fail-Bit pruefen
+    std::cout << "Keine Zahl!\n";
+    std::cin.clear();                    // 1. Fehlerzustand zuruecksetzen
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // 2. Puffer leeren
+}
+\end{lstlisting}
+\begin{merke}
+Immer das Muster \textbf{R\"uckgabewert pr\"ufen $\rightarrow$ Fehler ausgeben $\rightarrow$ Fehler behandeln} anwenden. \code{clear()} setzt das Fail-Bit zur\"uck, \code{ignore(...)} verwirft den restlichen Puffer.
+\end{merke}
+
+\subsection{Referenzen statt Zeiger}
+Eine \emph{Referenz} ist ein alternativer Name (Alias) f\"ur ein bestehendes Objekt.
+\begin{lstlisting}
+int a = 10;
+int& ref = a;   // ref ist ein anderer Name fuer a
+\end{lstlisting}
+Unterschiede zum Pointer: keine Dereferenzierung n\"otig, kann (in sauberem Code) nicht \code{nullptr} sein, und ist nach Bindung \textbf{nicht} umbiegbar.
+
+\begin{beispiel}[: Call-by-Reference vs. Call-by-Pointer (Swap)]
+\begin{lstlisting}
+// C-Stil: Call-by-Pointer        // C++-Stil: Call-by-Reference
+void swapC(int* a, int* b) {      void swapCpp(int& a, int& b) {
+    int t = *a; *a = *b; *b = t;      int t = a; a = b; b = t;
+}                                 }
+// Aufruf: swapC(&x, &y);         // Aufruf: swapCpp(x, y);
+\end{lstlisting}
+\end{beispiel}
+\begin{tipp}
+Prim\"ar \textbf{Referenzen} nutzen; Zeiger nur dort, wo unausweichlich (z.\,B. optionale Werte, dynamische Strukturen). Referenzen vermeiden teure Kopien (Call-by-Value).
+\end{tipp}
+
+\subsection{Typsicherheit \& Casts}
+C ist \emph{schwach} typisiert (viele implizite Casts erlaubt, z.\,B. \code{void*} $\to$ \code{int*}); C\texttt{++} ist \emph{stark} typisiert und verlangt explizite Casts.
+\begin{lstlisting}
+int* p = static_cast<int*>(malloc(sizeof *p)); // C++: expliziter Cast noetig
+\end{lstlisting}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{C\texttt{++}-Cast} & \textbf{Zweck} \\
+\midrule
+\code{static\_cast<T>(x)} & normale Umwandlungen (z.\,B. \code{int}$\to$\code{float}) \\
+\code{dynamic\_cast<T>(x)} & sichere Umwandlung in Vererbungshierarchien \\
+\code{const\_cast<T>(x)} & \code{const}-Attribut entfernen \\
+\code{reinterpret\_cast<T>(x)} & roher Bit-Cast (gef\"ahrlich, m\"oglichst meiden) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{merke}
+\textbf{Keine C-Casts \code{(int)x} mehr!} Sie erzwingen jede Umwandlung ungepr\"uft und sind im Code schwer zu finden. C\texttt{++}-Casts werden zur Compile-Zeit gepr\"uft, sind lesbar und verhindern versehentliches ``Wegcasten'' von \code{const}.
+\end{merke}
+
+\subsection{Defaultparameter}
+Standardwerte werden eingesetzt, wenn beim Aufruf kein Argument \"ubergeben wird. Sie m\"ussen von \textbf{rechts nach links} aufgef\"ullt werden und geh\"oren in die \textbf{Deklaration} (Header).
+\begin{lstlisting}
+void f(int a, int b = 2, int c = 3);  // ok
+// void f(int a = 1, int b);          // FEHLER: Luecke von rechts
+\end{lstlisting}
+\clearpage

@@ -2,6 +2,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run / Debug Lab 6 Sec 3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/courses/coding-in-C++/Lab_06/lab6_sec3",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/courses/coding-in-C++/Lab_06",
+            "environment": [],
+            "externalConsole": false,
+            "preLaunchTask": "build Lab 6 Sec 3",
+            "windows": {
+                "program": "${workspaceFolder}\\courses\\coding-in-C++\\Lab_06\\lab6_sec3.exe",
+                "MIMode": "gdb",
+                "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe"
+            },
+            "linux": {
+                "MIMode": "gdb",
+                "miDebuggerPath": "/usr/bin/gdb"
+            },
+            "osx": {
+                "MIMode": "lldb"
+            }
+        },
+        {
             "name": "Run / Debug C",
             "type": "cppdbg",
             "request": "launch",

@@ -1,0 +1,82 @@
+% ============================================================
+\section{Algorithmen \& Datenstrukturen (Labs)}
+% ============================================================
+Aus den Labs 7 und 9: einfache Sortierverfahren und Graphen. Erg\"anzt die STL-Algorithmen aus dem Abschnitt \emph{Generische Programmierung \& STL}.
+
+\subsection{Sortierverfahren}
+Beide Verfahren sortieren \textbf{in-place} und haben die Zeitkomplexit\"at $O(n^2)$. Sie eignen sich zum Verstehen der Grundidee -- in der Praxis nutzt man \code{std::sort} ($O(n\log n)$).
+
+\subsubsection*{Insertion Sort (Einf\"ugen)}
+Jedes Element wird an die richtige Stelle des bereits sortierten linken Teils ,,einsortiert''. Best Case $O(n)$ (fast sortiert), \textbf{stabil}.
+\begin{lstlisting}
+for (std::size_t i = 1; i < values.size(); ++i) {
+    int key = values[i];
+    std::size_t j = i;
+    while (j > 0 && values[j - 1] > key) {   // groessere Elemente nach rechts schieben
+        values[j] = values[j - 1];
+        --j;
+    }
+    values[j] = key;                          // key an richtiger Stelle einfuegen
+}
+\end{lstlisting}
+
+\subsubsection*{Selection Sort (Auswahl)}
+Sucht in jedem Durchlauf das Minimum des Rests und tauscht es nach vorne. Immer $O(n^2)$ (auch im Best Case), \textbf{nicht stabil}.
+\begin{lstlisting}
+for (std::size_t i = 0; i + 1 < values.size(); ++i) {
+    std::size_t min_index = i;
+    for (std::size_t j = i + 1; j < values.size(); ++j)
+        if (values[j] < values[min_index]) min_index = j;
+    if (min_index != i)
+        std::swap(values[i], values[min_index]);   // Minimum nach vorne
+}
+\end{lstlisting}
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Verfahren} & \textbf{Best} & \textbf{Average/Worst} & \textbf{Stabil?} \\
+\midrule
+Insertion Sort & $O(n)$ & $O(n^2)$ & ja \\
+Selection Sort & $O(n^2)$ & $O(n^2)$ & nein \\
+\code{std::sort} & \multicolumn{2}{c}{$O(n\log n)$} & nein \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Graphen}
+\begin{definition}[: Graph]
+Ein Graph $G=(V,E)$ besteht aus \textbf{Knoten} (Vertices $V$) und \textbf{Kanten} (Edges $E$), die paarweise Beziehungen darstellen. Eigenschaften: \emph{gewichtet/ungewichtet}, \emph{gerichtet/ungerichtet}, \emph{zusammenh\"angend}, \emph{Grad} eines Knotens (Anzahl Kanten).
+\end{definition}
+
+\subsubsection*{Adjazenzmatrix vs. Adjazenzliste}
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Adjazenzmatrix} & \textbf{Adjazenzliste} \\
+\midrule
+Struktur & $n\times n$-Matrix, \code{[i][j]} & pro Knoten Liste der Nachbarn \\
+Kante pr\"ufen & $O(1)$ & $O(\text{Grad})$ \\
+Speicher & $O(V^2)$ & $O(V + E)$ \\
+gut bei & dichten Graphen & d\"unnen (sparse) Graphen \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{lstlisting}
+// Adjazenzmatrix (gewichtet) ueber 2D-Vektor:
+std::vector<std::vector<int>> matrix(n, std::vector<int>(n, 0));
+matrix[i][j] = gewicht;                    // Kante i->j mit Gewicht
+
+// Adjazenzliste (gewichtet): pro Knoten Liste von (Nachbar, Gewicht)
+std::vector<std::vector<std::pair<int,int>>> adj(n);
+adj[i].push_back({j, gewicht});
+\end{lstlisting}
+
+\subsubsection*{Dijkstra -- k\"urzester Pfad}
+Findet die k\"urzesten Pfade von einem Startknoten zu allen anderen in einem \textbf{gewichteten} Graphen. Idee: stets den unbesuchten Knoten mit der kleinsten bekannten Distanz w\"ahlen und dessen Nachbarn aktualisieren (\emph{Relaxation}).
+\begin{merke}
+\begin{itemize}
+  \item \textbf{Effizienter} als alle Pfade zu berechnen, weil bereits gefundene k\"urzeste Distanzen wiederverwendet werden (gierige Auswahl) statt jede Kombination zu pr\"ufen.
+  \item Ben\"otigt \textbf{nicht-negative} Kantengewichte -- bei negativen Gewichten kann ein als ,,fertig'' markierter Knoten nachtr\"aglich noch verbessert werden, was Dijkstra nicht ber\"ucksichtigt.
+\end{itemize}
+\end{merke}
+\clearpage

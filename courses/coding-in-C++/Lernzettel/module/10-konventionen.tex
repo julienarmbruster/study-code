@@ -1,0 +1,88 @@
+% ============================================================
+\section{Coding-Conventions (Kurzreferenz)}
+% ============================================================
+Komprimierte Regeln aus \code{cpp\_coding\_conventions.md} (an MISRA-C\texttt{++}-Ideen angelehnt). Leitsatz:
+\begin{merke}
+\textbf{,,Code is written for humans first and for the compiler second.''} Lesbarkeit und Sicherheit sind meist wichtiger als eine gesparte Zeile. Ziel: lesbar, wartbar, testbar, explizit, robust.
+\end{merke}
+
+\subsection{Namensgebung}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Element} & \textbf{Stil} \\
+\midrule
+Variablen / Parameter & \code{lower\_snake\_case} oder \code{camelCase} \\
+Funktionen / Methoden & dito, m\"oglichst \textbf{Verben} \\
+Namespaces & \code{lower\_snake\_case} \\
+Konstanten & \code{UPPER\_SNAKE\_CASE} \\
+Klassen / Structs / Enums & \code{PascalCase} \\
+Pointer & beginnen mit \code{p\_} bzw.\ \code{ptr\_} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Wichtig:} Egal welcher Stil -- \textbf{konsistent} bleiben.
+
+\subsection{Formatierung}
+4 Leerzeichen (oder 1 Tab) pro Ebene, Tabs \& Spaces \textbf{nicht mischen}; eine Anweisung pro Zeile; \textbf{immer Klammern} \code{\{\}} bei Kontrollstrukturen; Zeilen $\lesssim$ 100 Zeichen; Leerzeile zwischen logischen Bl\"ocken.
+\begin{lstlisting}
+// Gut                                   // Schlecht
+if (temperature > MAX_TEMPERATURE) {      if (t > 80) shutdown_heater();
+    shutdown_heater();                    // unklarer Name, magische Zahl, keine Klammern
+}
+\end{lstlisting}
+
+\subsection{Dateien \& Header}
+Ein Modul = ein Header (\code{.hpp}, Schnittstelle) + eine Quelldatei (\code{.cpp}, Implementierung). Header brauchen \textbf{Include-Guards} und enthalten Deklarationen/Typen/Konstanten -- keine gro\ss en Implementierungen. Jede Quelldatei beginnt mit einem kurzen Datei-Header; \"offentliche Funktionen dokumentieren (Parameter, R\"uckgabe). Erkl\"are \textbf{warum}, nicht jedes triviale \emph{was}.
+
+\subsection{Variablen, Typen \& Konstanten}
+\begin{itemize}
+  \item Variablen \textbf{sofort initialisieren}, eine Deklaration pro Zeile, Scope minimal.
+  \item Magische Zahlen durch benannte Konstanten ersetzen.
+  \item Passende Typen w\"ahlen, keine impliziten Narrowing-Konvertierungen; \code{bool} f\"ur logische Zust\"ande.
+  \item \code{enum class} statt \code{enum}; signed/unsigned nicht unbedacht mischen.
+\end{itemize}
+
+\subsection{Funktionen \& Parameter\"ubergabe}
+Eine Funktion = eine Verantwortung; kurz halten; Namen beschreiben Verhalten.
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{\"Ubergabe} \\
+\midrule
+kleine fundamentale Typen & per Wert (\code{int x}) \\
+gro\ss e Objekte & per Referenz (\code{T\& x}) \\
+gro\ss e, nur-lesend & per \code{const}-Referenz (\code{const T\& x}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Pointer \& Referenzen}
+Referenzen bevorzugen, wenn \code{null} kein g\"ultiger Zustand ist; jeden Pointer initialisieren; nie ohne G\"ultigkeitspr\"ufung dereferenzieren; \code{nullptr} statt \code{NULL}. Globale Variablen vermeiden.
+
+\subsection{Kontrollfluss \& Ausdr\"ucke}
+Immer Klammern; flache Verschachtelung; ggf.\ \emph{early return}. Jedes \code{switch} braucht \code{default}; \code{break} bewusst setzen. Keine \"uberkomplexen Ausdr\"ucke; nicht auf subtile Operator-Pr\"azedenz verlassen -- in Zwischenvariablen aufteilen.
+
+\subsection{Casts}
+Keine C-Casts \code{(int)x}. C\texttt{++}-Casts verwenden und jeden Cast begr\"unden: \code{static\_cast}, \code{dynamic\_cast}, \code{const\_cast}, \code{reinterpret\_cast} (letzteren meiden).
+
+\subsection{Klassen \& OOP}
+\begin{itemize}
+  \item Member-Variablen grunds\"atzlich \code{private}; \"offentliche Methoden = Schnittstelle.
+  \item Eine Klasse = eine klare Verantwortung; Methoden $>5$ Zeilen au\ss erhalb der Klasse definieren.
+  \item Alle Member initialisieren, \textbf{Member-Initialisierungsliste} bevorzugen; keine komplexe Logik im Konstruktor.
+  \item \code{const} markieren, wenn der Objektzustand nicht ge\"andert wird (const-correctness).
+  \item Komposition vor Vererbung, au\ss er bei echter ,,ist-ein''-Beziehung; flache Hierarchien.
+  \item \code{override} bei \"uberschriebenen Methoden; polymorphe Basisklasse $\Rightarrow$ \textbf{virtueller Destruktor}.
+  \item \code{static} nur bei wirklich geteiltem Zustand.
+\end{itemize}
+
+\subsection{Speicher \& Standardbibliothek}
+Automatische (Stack-)Objekte bevorzugen; \code{new}/\code{delete} nur bei echter dynamischer Lebensdauer -- jedes \code{new} genau ein \code{delete}, \textbf{nie} \code{new/delete} mit \code{malloc/free} mischen (besser: Smart Pointer / RAII). \code{std::string} statt C-Strings, Standardcontainer statt manueller Arrays. \code{using namespace} (v.\,a.\ \code{std}) in gr\"o\ss eren Projekten vermeiden.
+
+\subsection{Gef\"ahrliche Konstrukte}
+Kein \code{goto}; nicht auf Undefined Behaviour verlassen; Makros/Pr\"aprozessor-Tricks f\"ur Konstanten vermeiden (lieber \code{const}/\code{constexpr}).
+
+\begin{tipp}
+Schnellcheck vor dem Commit: sprechende Namen? keine magischen Zahlen? Klammern \"uberall? Member \code{private} \& initialisiert? \code{const} wo m\"oglich? kein rohes \code{new}/\code{delete}? \code{override} gesetzt?
+\end{tipp}

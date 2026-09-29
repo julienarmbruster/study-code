@@ -1,0 +1,100 @@
+% ============================================================
+\section{Code-Design: SOLID \& Patterns (Abschnitt VIII)}
+% ============================================================
+\emph{Software Engineering} ist die systematische Entwicklung, Planung, Implementierung, Testung und Wartung von Software. Gutes Design reduziert \textbf{Kopplung} und f\"ordert \textbf{klare Verantwortlichkeiten}.
+
+\subsection{SOLID-Prinzipien}
+F\"unf Designprinzipien f\"ur skalierbare, erweiterbare und flexible (OO-)Software.
+
+\subsubsection*{S -- Single Responsibility (SRP)}
+Eine Klasse sollte \textbf{genau einen Grund zur \"Anderung} haben. Mehrere Aufgaben in einer Klasse $\Rightarrow$ \"Anderungen beeinflussen sich gegenseitig, schlechtere Test- und Wiederverwendbarkeit.
+\begin{lstlisting}
+// Verletzung: drei Verantwortlichkeiten          // Korrektur: aufteilen
+class Report {                                     class Report       { void generate(); };
+    void generate();                               class ReportSaver  { void saveToFile(const Report&); };
+    void saveToFile();                             class ReportPrinter{ void print(const Report&); };
+    void print();
+};
+\end{lstlisting}
+\begin{merke}
+,,Eine Aufgabe'' hei\ss t \textbf{nicht} ,,eine Methode'' -- eine Klasse darf viele Methoden haben, solange sie zur gleichen Verantwortung geh\"oren.
+\end{merke}
+
+\subsubsection*{O -- Open/Closed (OCP)}
+Klassen sollen \textbf{offen f\"ur Erweiterung, aber geschlossen f\"ur \"Anderung} sein: neuen Code hinzuf\"ugen statt funktionierenden Code umschreiben (vermeidet Bugs/Regressionen). Umsetzung \"uber Interfaces, abstrakte Klassen, virtuelle Methoden, Polymorphie.
+\begin{lstlisting}
+// statt if (shape=="circle") ... else if ...   ->   Vererbung + override
+class Shape  { public: virtual double area() const = 0; virtual ~Shape() = default; };
+class Circle : public Shape { public: double area() const override { return 10.0; } };
+\end{lstlisting}
+
+\subsubsection*{L -- Liskov Substitution (LSP)}
+Objekte einer abgeleiteten Klasse m\"ussen sich \textbf{wie} die der Basisklasse verhalten -- sie m\"ussen \"uberall austauschbar sein. Drei Regeln:
+\begin{enumerate}
+  \item Vorbedingungen d\"urfen \textbf{nicht versch\"arft} werden (Derived verlangt nicht mehr als Base).
+  \item Nachbedingungen d\"urfen \textbf{nicht abgeschw\"acht} werden (Derived garantiert mind. so viel wie Base).
+  \item Invarianten m\"ussen \textbf{erhalten} bleiben (global g\"ultige Zust\"ande nicht verletzen).
+\end{enumerate}
+
+\subsubsection*{I -- Interface Segregation (ISP)}
+Klassen sollen nicht von Methoden abh\"angen, die sie nicht brauchen. Lieber \textbf{mehrere kleine, spezialisierte Interfaces} als ein gro\ss es. (ISP ist das SRP f\"ur Interfaces.)
+\begin{lstlisting}
+// Verletzung: BasicPrinter muss scan() implementieren, wirft aber nur Exception
+class Machine { public: virtual void print() = 0; virtual void scan() = 0; };
+// Besser: getrennte Interfaces Printer und Scanner
+\end{lstlisting}
+
+\subsubsection*{D -- Dependency Inversion (DIP)}
+High-Level-Module sollen nicht von konkreten Implementierungen abh\"angen, sondern von \textbf{Abstraktionen} (Interfaces). Entkoppelt Fachlogik von technischen Details (DB, API, Framework).
+\begin{lstlisting}
+class Database { public: virtual void save_order() = 0; };       // Abstraktion
+class MySQLDatabase : public Database { public: void save_order() override {} };
+class OrderService {
+    Database& db;                                                 // kennt nur die Abstraktion
+public:
+    OrderService(Database& db) : db(db) {}
+};
+\end{lstlisting}
+
+\subsection{Design Patterns}
+\begin{definition}[: Design Pattern]
+Bew\"ahrte, wiederverwendbare L\"osungs\emph{baupl\"ane} f\"ur wiederkehrende Design-Probleme -- kein konkreter Code, sondern Beschreibung von Problem, L\"osungsansatz und beteiligten Komponenten. Standardwerk: \emph{Gang of Four} (Gamma et al., 1994).
+\end{definition}
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Kategorie} & \textbf{Zweck} & \textbf{Beispiele} \\
+\midrule
+Creational (Erzeugung) & Objekterstellung regeln/entkoppeln & Factory, Singleton, Builder \\
+Structural (Struktur) & Klassenaufbau vereinfachen & Adapter, Decorator, Proxy \\
+Behavioral (Verhalten) & Kommunikation/Verantwortung & Observer, Strategy, Command, State \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{Factory Method (Creational)}
+Objekte werden nicht \"uberall direkt mit \code{new} erzeugt, sondern zentral \"uber eine \emph{Factory} -- gekapselt, austauschbar, erweiterbar, testbar.
+\begin{lstlisting}
+class SensorFactory {
+public:
+    static std::unique_ptr<Sensor> create_sensor(const std::string& type) {
+        if (type == "temperature") return std::make_unique<TemperatureSensor>();
+        if (type == "pressure")    return std::make_unique<PressureSensor>();
+        return nullptr;
+    }
+};
+auto sensor = SensorFactory::create_sensor("temperature");
+sensor->read();
+\end{lstlisting}
+Vorteil: \code{main} kennt nur noch die Factory + die abstrakte Basisklasse \code{Sensor} (DIP); neue Sensoren erfordern nur eine \"Anderung der Factory (OCP).
+
+\subsubsection*{Observer (Behavioral)}
+Ein \emph{Subject} informiert automatisch registrierte \emph{Observer}, wenn sich sein Zustand \"andert. Statt dass z.\,B. ein Sensor \code{display.update()}, \code{logger.update()}, \dots\ direkt aufruft, registrieren sich die Observer \"uber ein gemeinsames Interface $\Rightarrow$ lose Kopplung, leicht erweiterbar (OCP).
+
+\subsubsection*{Adapter (Structural)}
+\"Ubersetzt zwischen zwei inkompatiblen Schnittstellen: Eine fremde Klasse (z.\,B. \code{LegacyTemperatureDevice}) soll genutzt werden, ohne sie zu \"andern. Der Adapter sieht nach au\ss en wie das erwartete \code{Sensor}-Interface aus, nutzt intern aber die Fremdklasse. Ideal zum Integrieren von Legacy-/Herstellerbibliotheken.
+
+\begin{tipp}
+SOLID + Patterns zielen auf dasselbe: \textbf{geringe Kopplung, hohe Kohäsion}. Patterns schaffen au\ss erdem eine gemeinsame Sprache -- ,,das ist ein Strategy Pattern'' ersetzt lange Erkl\"arungen.
+\end{tipp}
+\clearpage

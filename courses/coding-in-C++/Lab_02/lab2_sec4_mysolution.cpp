@@ -17,7 +17,8 @@ class Drinkbuilder
     public:
 
     Drinkbuilder() : name(""), sugar(0), temperature(0), withMilk(false) {}
-    Drinkbuilder(std::string name, int sugar, int tempereture, bool withmilk){}
+    Drinkbuilder(std::string name, int sugar, int temperature, bool withmilk)
+        : name(name), sugar(sugar), temperature(temperature), withMilk(withmilk){}
     Drinkbuilder& setName(const std::string& name){
         this->name = name;
         return *this;

@@ -1,0 +1,134 @@
+% ============================================================
+\section{Polymorphie (Abschnitt V)}
+% ============================================================
+\begin{definition}[: Polymorphie]
+Polymorphie bedeutet \textbf{,,gleicher Aufruf, unterschiedliches Verhalten''}: Die Form eines Bezeichners h\"angt vom Kontext ab. Man behandelt Objekte verschiedener Klassen \"uber einen gemeinsamen Typ.
+\end{definition}
+
+% --- Screenshot: gleicher Aufruf, unterschiedliches Verhalten ---
+\folie{0.7}{polymorphie_schema}{,,Gleicher Aufruf, unterschiedliches Verhalten'': \code{Animal::makeNoise()} verh\"alt sich je nach Objekt unterschiedlich (Vorlesungsfolien Abschnitt V).}
+
+\subsection{Binding: statisch vs. dynamisch}
+\emph{Binding} ist die Zuordnung eines Funktionsaufrufs zu einer konkreten Implementierung.
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{Static / Early Binding} & \textbf{Dynamic / Late Binding} \\
+\midrule
+Entscheidung & zur Compile-Zeit & zur Laufzeit \\
+Funktionsziel & feste Adresse im Code & indirekt \"uber Zeiger (vtable) \\
+erm\"oglicht & --- & Polymorphie \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Statische Polymorphie (Compile-Zeit)}
+Nutzt Early Binding. Dazu geh\"oren \textbf{Funktions\"uberladung}, \textbf{Operator\"uberladung} und Templates (Abschnitt VI).
+
+\subsubsection*{Funktions\"uberladung (Overloading)}
+Mehrere Funktionen mit demselben Namen, aber unterschiedlicher Parameterliste. Der Compiler w\"ahlt anhand der Argumente (intern \"uber \emph{Name Mangling}, z.\,B. \code{printi}, \code{printd}).
+\begin{lstlisting}
+void print(int x)    { std::cout << "int: "    << x << '\n'; }
+void print(double x) { std::cout << "double: " << x << '\n'; }
+print(5);      // -> print(int)
+print(3.14);   // -> print(double)
+\end{lstlisting}
+
+\subsubsection*{Operator\"uberladung}
+Operatoren (\code{+}, \code{*}, \code{==}, \code{<<}, \dots) f\"ur eigene Typen definieren.
+\begin{lstlisting}
+class Vec2 {
+    double x, y;
+public:
+    Vec2(double x, double y) : x(x), y(y) {}
+    Vec2 operator+(const Vec2& v) const {   // a + b  ->  a.operator+(b)
+        return Vec2(x + v.x, y + v.y);
+    }
+};
+\end{lstlisting}
+
+\subsection{Dynamische Polymorphie (Laufzeit)}
+Bedingungen (\textbf{alle drei}): \textbf{Vererbung}, \textbf{virtuelle Funktionen}, Aufruf \"uber \textbf{Basisklassen-Zeiger oder -Referenz}.
+
+\subsubsection*{Statischer vs. dynamischer Typ}
+\begin{lstlisting}
+Base* b = new Derived();   // statischer Typ: Base*  |  dynamischer Typ: Derived
+b->foo();                  // dynamischer Typ entscheidet -> Derived::foo()
+\end{lstlisting}
+Der \emph{statische Typ} (Zeigertyp) ist zur Compile-Zeit bekannt; der \emph{dynamische Typ} (tats\"achliches Objekt) steht erst zur Laufzeit fest. \emph{Dynamic Dispatch} w\"ahlt anhand des \textbf{Objekttyps}.
+
+\subsubsection*{Mechanismus: vtable \& vptr}
+\begin{itemize}
+  \item Jede polymorphe Klasse (mit virtuellen Methoden) hat eine \textbf{vtable} -- eine Tabelle mit Zeigern auf alle virtuellen Methoden.
+  \item Jedes Objekt besitzt einen versteckten Zeiger \textbf{vptr} auf diese Tabelle.
+  \item Beim Aufruf springt das Objekt \"uber den vptr in die vtable, findet die passende Methode und springt an deren Adresse.
+\end{itemize}
+
+\subsection{Virtuelle Funktionen \& \texttt{override}}
+\begin{syntaxbox}
+\code{virtual Rueckgabetyp name(Parameter);} \quad in der Basisklasse \\
+\code{Rueckgabetyp name(Parameter) override;} \quad in der abgeleiteten Klasse
+\end{syntaxbox}
+\begin{lstlisting}
+class Tier {
+public:
+    virtual void lautGeben() { std::cout << "Tier macht ein Laut\n"; }
+};
+class Hund : public Tier {
+public:
+    void lautGeben() override { std::cout << "Wuff\n"; }
+};
+Tier* t = new Hund();
+t->lautGeben();   // -> "Wuff"  (dynamischer Typ Hund)
+\end{lstlisting}
+\begin{merke}
+\textbf{Immer \code{override} verwenden!} Stimmt die Signatur nicht \textbf{exakt} mit der virtuellen Funktion \"uberein (gleicher R\"uckgabetyp, gleiche Parameter, gleiches \code{const}), wird ohne \code{override} stillschweigend die Basisklassen-Methode aufgerufen -- ein schwer findbarer Logik-Bug. Mit \code{override} pr\"uft der Compiler dies und meldet sofort einen Fehler.
+\end{merke}
+
+\subsection{Rein virtuelle Funktionen \& abstrakte Klassen}
+Eine \emph{rein virtuelle Funktion} hat keine Implementierung (\code{= 0}) und muss in jeder abgeleiteten Klasse \"uberschrieben werden. Eine Klasse mit mindestens einer solchen Funktion ist \textbf{abstrakt} -- von ihr kann \textbf{kein Objekt} erzeugt werden.
+\begin{lstlisting}
+class Shape {                         // abstrakte Klasse / Interface
+public:
+    virtual double area() const = 0;  // rein virtuell
+    virtual ~Shape() = default;       // virtueller Destruktor (s.u.)
+};
+class Circle : public Shape {
+    double radius;
+public:
+    Circle(double r) : radius(r) {}
+    double area() const override { return 3.1415 * radius * radius; }
+};
+// Shape s;        // FEHLER: abstrakt, nicht instanziierbar
+Shape* s = new Circle(2.0);
+\end{lstlisting}
+Nutzen: gemeinsame \textbf{Schnittstelle} f\"ur alle Kindklassen, echte Polymorphie und Design-Sicherheit (fehlende \"Uberschreibung verhindert Instanziierung).
+
+\subsection{Virtueller Destruktor (wichtig!)}
+\begin{merke}
+Wird eine Klasse polymorph genutzt (L\"oschen \"uber Basisklassen-Zeiger), \textbf{muss} sie einen \code{virtual}-Destruktor haben. Ohne ihn wird nur der Basis-Destruktor aufgerufen $\Rightarrow$ der Destruktor der abgeleiteten Klasse l\"auft nicht $\Rightarrow$ \textbf{Speicherleck / undefiniertes Verhalten}.
+\end{merke}
+\begin{lstlisting}
+class Shape  { public: virtual ~Shape() { } };   // virtual -> korrekt
+class Circle : public Shape { public: ~Circle() { /* gibt Ressourcen frei */ } };
+
+Shape* s = new Circle();
+delete s;     // ruft ~Circle() UND ~Shape() in richtiger Reihenfolge
+\end{lstlisting}
+
+\subsection{Interface vs. abstrakte Klasse}
+In C\texttt{++} werden beide als abstrakte Klasse umgesetzt; ein \emph{Interface} ist die Sonderform mit \textbf{ausschlie\ss lich} rein virtuellen Methoden.
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Abstrakte Klasse} & \textbf{Interface} \\
+\midrule
+gemeinsame Basis + Verhalten & reines Verhalten (Vertrag) \\
+echte Attribute m\"oglich & nur Methodensignaturen \\
+Semantik ,,ist eine Art von'' & Semantik ,,kann etwas'' \\
+darf konkrete Methoden haben & nur rein virtuelle Methoden \\
+\bottomrule
+\end{tabular}
+\end{center}
+\textbf{UML:} Abstraktes wird \emph{kursiv} und/oder mit Stereotyp \code{<<abstract>>} bzw. \code{<<interface>>} gekennzeichnet; Implementierung via gestricheltem Pfeil oder Lollipop-Symbol. In UML ist jede Methode implizit virtuell.
+\clearpage

@@ -1,0 +1,77 @@
+\documentclass[11pt,a4paper]{scrartcl}
+\input{preambel}
+
+\begin{document}
+
+% =================== DECKBLATT ===================
+\begin{titlepage}
+\centering
+\vspace*{1.4cm}
+{\Large\scshape Programmieren II f\"ur TSA/TSL 25\par}
+\vspace{0.4cm}
+{\color{defblue}\rule{\linewidth}{1.2pt}}\par
+\vspace{0.8cm}
+{\Huge\bfseries C\texttt{++}\par}
+\vspace{0.5cm}
+{\LARGE Lernzettel \& Nachschlagewerk\par}
+\vspace{0.4cm}
+{\color{defblue}\rule{\linewidth}{1.2pt}}\par
+\vspace{1.0cm}
+{\large Kompakte, pr\"ufungs- und praxisorientierte \"Ubersicht des gesamten Stoffs\par}
+\vspace{0.3cm}
+{\normalsize nach den Vorlesungsfolien von Prof.\ Dr.\ Christian Braunagel\par}
+{\small DHBW Ravensburg \textperiodcentered{} Abschnitte II--VIII + Lab-Themen\par}
+
+\vspace{1.1cm}
+\begin{tcolorbox}[width=0.9\linewidth,colback=defbluebg,colframe=defblue,
+  halign=left,title={\bfseries Inhalt dieses Lernzettels},fonttitle=\bfseries]
+\begin{multicols}{2}
+\begin{enumerate}[leftmargin=*,itemsep=1pt]
+  \item Schnell\"ubersicht (Cheat-Sheet)
+  \item Von C zu C\texttt{++}
+  \item OOP-Grundlagen (Klassen)
+  \item UML \& Vererbung
+  \item UML-Notation $\leftrightarrow$ C\texttt{++} (Spickzettel)
+  \item Polymorphie
+  \item Generische Programmierung \& STL
+  \item Exceptions \& Smart Pointer
+  \item Code-Design (SOLID, Patterns)
+  \item Algorithmen \& Datenstrukturen
+  \item Tooling \& Testing (GoogleTest, CMake)
+  \item Coding-Conventions
+\end{enumerate}
+\end{multicols}
+\end{tcolorbox}
+
+\vfill
+\begin{tcolorbox}[width=0.9\linewidth,colback=merkeredbg,colframe=merkered,boxrule=0.6pt]
+\small\textbf{Legende der Boxen:}\quad
+\textcolor{defblue}{\rule{2.5mm}{2.5mm}}~Definition \quad
+\textcolor{merkered}{\rule{2.5mm}{2.5mm}}~Merke/Pr\"ufungstipp \quad
+\textcolor{syntaxgreen}{\rule{2.5mm}{2.5mm}}~Syntax \quad
+\textcolor{beispielorange}{\rule{2.5mm}{2.5mm}}~Beispiel \quad
+\textcolor{tippteal}{\rule{2.5mm}{2.5mm}}~Best Practice
+\end{tcolorbox}
+\vspace{0.5cm}
+{\small Stand: \today\par}
+\end{titlepage}
+
+% =================== INHALTSVERZEICHNIS ===================
+\tableofcontents
+\newpage
+
+% =================== MODULE ===================
+\input{module/00-cheatsheet}
+\input{module/01-c-zu-cpp}
+\input{module/02-oop-grundlagen}
+\input{module/03-uml-vererbung}
+\input{module/03b-uml-cpp-mapping}
+\input{module/04-polymorphie}
+\input{module/05-templates-stl}
+\input{module/06-exceptions-smartptr}
+\input{module/07-code-design}
+\input{module/08-algorithmen}
+\input{module/09-tooling-testing}
+\input{module/10-konventionen}
+
+\end{document}

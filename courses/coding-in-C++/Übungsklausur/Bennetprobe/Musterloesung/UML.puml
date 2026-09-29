@@ -1,0 +1,88 @@
+@startuml Bibliotheksverwaltung
+' Musterloesung Aufgabe a) - UML-Klassendiagramm
+' Rendern z. B. unter https://www.plantuml.com/plantuml oder mit der PlantUML-Extension.
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide empty members
+
+' =====================================================================
+'  Abstrakte Basisklasse
+' =====================================================================
+abstract class Media {
+  - {static} nextId : int
+  # id : int {readOnly}
+  # title : string
+  # available : bool
+  # requiredAccess : string
+  # activeCustomer : Member*
+  --
+  + Media(in title : string, in requiredAccess : string)
+  + {abstract} printInfo() : void {query}
+  + getId() : int {query}
+  + setActiveCustomer(in customer : Member*) : void
+  # printFooter() : void {query}
+  + ~Media()
+}
+
+class EBook {
+  - fileSizeMb : double
+  --
+  + printInfo() : void {query}
+  + getFileSizeMb() : double {query}
+  + setFileSizeMb(in value : double) : void
+}
+
+class Audiobook {
+  - durationMin : double
+  --
+  + printInfo() : void {query}
+  + getDurationMin() : double {query}
+  + setDurationMin(in value : double) : void
+}
+
+' =====================================================================
+'  Mitglied
+' =====================================================================
+class Member {
+  - {static} nextId : int
+  - id : int {readOnly}
+  - name : string
+  - accessRights : set<string>
+  - hasBorrowedItem : bool
+  --
+  + Member(in name : string)
+  + addRight(in right : string) : void
+  + removeRight(in right : string) : void
+  + hasRight(in right : string) : bool {query}
+  + rentMedia(in media : Media*) : bool
+  + returnMedia(in media : Media*) : bool
+  + getId() : int {query}
+}
+
+' =====================================================================
+'  Generische Verwaltung (parametrisierte Klasse / Template)
+' =====================================================================
+class "Administration<T>" as Administration <<template>> {
+  - elements : vector<unique_ptr<T>>
+  --
+  + add(in element : unique_ptr<T>) : void
+  + count() : size_t {query}
+  + findById(in id : int) : T* {query}
+}
+
+' =====================================================================
+'  Beziehungen
+' =====================================================================
+Media <|-- EBook
+Media <|-- Audiobook
+
+' Ein Mitglied leiht hoechstens ein Medium; ein Medium ist von 0..1 Mitglied
+' ausgeliehen. Navigierbar von Media zu Member (activeCustomer).
+Media "0..1" --> "0..1  activeCustomer" Member : borrowed by >
+
+' Die Verwaltung haelt (Aggregation) ihre Elemente ueber Smart Pointer.
+Administration o--> "0..*" Media : <<bind>> T -> Media
+Administration o--> "0..*" Member : <<bind>> T -> Member
+
+@enduml

@@ -1,0 +1,134 @@
+% ============================================================
+%  Praeambel + farbige Boxen + C++-Listings
+%  fuer den C++-Lernzettel (Programmieren II)
+% ============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[ngerman]{babel}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{multicol}
+
+% Bildersuchpfad
+\graphicspath{{bilder/}}
+
+% Listen etwas kompakter
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt}
+
+% ---- Farben -------------------------------------------------
+\definecolor{defblue}{HTML}{1F6FB2}
+\definecolor{defbluebg}{HTML}{EAF2FB}
+\definecolor{merkered}{HTML}{C0392B}
+\definecolor{merkeredbg}{HTML}{FBEAE8}
+\definecolor{syntaxgreen}{HTML}{1E8449}
+\definecolor{syntaxgreenbg}{HTML}{E8F6EE}
+\definecolor{beispielorange}{HTML}{B9770E}
+\definecolor{beispielorangebg}{HTML}{FCF3E2}
+\definecolor{tippteal}{HTML}{0E7C7B}
+\definecolor{ticktealbg}{HTML}{E4F4F4}
+\definecolor{rulegray}{HTML}{888888}
+
+% ---- Code-Farben (Syntax-Highlighting) ----------------------
+\definecolor{codebg}{HTML}{F7F8FA}
+\definecolor{codekw}{HTML}{0033B3}   % keywords
+\definecolor{codekw2}{HTML}{7A3E9D}  % typen / sekundaere keywords
+\definecolor{codecomment}{HTML}{4C8A4C}
+\definecolor{codestring}{HTML}{A31515}
+\definecolor{codenum}{HTML}{098658}
+\definecolor{codeline}{HTML}{B0B0B0}
+
+% ---- hyperref (vor tcolorbox) -------------------------------
+\usepackage[colorlinks=true,linkcolor=defblue,urlcolor=defblue,
+            citecolor=defblue,linktoc=all,
+            pdftitle={C++ -- Programmieren II -- Lernzettel},
+            pdfauthor={Programmieren II (TSA/TSL 25)}]{hyperref}
+
+% ---- tcolorbox + Box-Umgebungen -----------------------------
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+\newtcolorbox{definition}[1][]{
+  enhanced, breakable, colback=defbluebg, colframe=defblue,
+  coltitle=white, fonttitle=\bfseries, left=2mm, right=2mm,
+  title={Definition#1}, sharp corners=downhill, boxrule=0.6pt,
+  attach boxed title to top left={xshift=4mm,yshift=-2.5mm},
+  boxed title style={colback=defblue,sharp corners}}
+
+\newtcolorbox{merke}[1][]{
+  enhanced, breakable, colback=merkeredbg, colframe=merkered,
+  coltitle=white, fonttitle=\bfseries, left=2mm, right=2mm,
+  title={Merke \textperiodcentered{} Pr\"ufungstipp#1}, sharp corners=downhill, boxrule=0.6pt,
+  attach boxed title to top left={xshift=4mm,yshift=-2.5mm},
+  boxed title style={colback=merkered,sharp corners}}
+
+\newtcolorbox{syntaxbox}[1][]{
+  enhanced, breakable, colback=syntaxgreenbg, colframe=syntaxgreen,
+  coltitle=white, fonttitle=\bfseries, left=2mm, right=2mm,
+  title={Syntax#1}, sharp corners=downhill, boxrule=0.6pt,
+  attach boxed title to top left={xshift=4mm,yshift=-2.5mm},
+  boxed title style={colback=syntaxgreen,sharp corners}}
+
+\newtcolorbox{beispiel}[1][]{
+  enhanced, breakable, colback=beispielorangebg, colframe=beispielorange,
+  coltitle=white, fonttitle=\bfseries, left=2mm, right=2mm,
+  title={Beispiel#1}, sharp corners=downhill, boxrule=0.6pt,
+  attach boxed title to top left={xshift=4mm,yshift=-2.5mm},
+  boxed title style={colback=beispielorange,sharp corners}}
+
+\newtcolorbox{tipp}[1][]{
+  enhanced, breakable, colback=ticktealbg, colframe=tippteal,
+  coltitle=white, fonttitle=\bfseries, left=2mm, right=2mm,
+  title={Best Practice \textperiodcentered{} Konvention#1}, sharp corners=downhill, boxrule=0.6pt,
+  attach boxed title to top left={xshift=4mm,yshift=-2.5mm},
+  boxed title style={colback=tippteal,sharp corners}}
+
+% ---- Code-Listings (C++) ------------------------------------
+\lstdefinestyle{cpp}{
+  language=C++,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{codekw}\bfseries,
+  keywordstyle=[2]\color{codekw2},
+  commentstyle=\color{codecomment}\itshape,
+  stringstyle=\color{codestring},
+  numberstyle=\tiny\color{codeline},
+  backgroundcolor=\color{codebg},
+  frame=single, rulecolor=\color{rulegray},
+  breaklines=true, columns=fullflexible,
+  keepspaces=true, showstringspaces=false,
+  numbers=none, xleftmargin=3mm, xrightmargin=2mm,
+  aboveskip=5pt, belowskip=5pt, tabsize=2,
+  morekeywords={override,final,nullptr,constexpr,noexcept,explicit,
+                using,namespace,template,typename,virtual,public,private,
+                protected,friend,this,new,delete,throw,try,catch,auto,
+                static_cast,dynamic_cast,const_cast,reinterpret_cast},
+  keywords=[2]{std,string,vector,map,unique_ptr,shared_ptr,make_unique,
+               make_shared,size_t,uint8_t,cout,cin,endl,ostream,istream,
+               runtime_error,out_of_range,invalid_argument,move,
+               initializer_list,pair},
+  literate={ä}{{\"a}}1 {ö}{{\"o}}1 {ü}{{\"u}}1 {Ä}{{\"A}}1
+           {Ö}{{\"O}}1 {Ü}{{\"U}}1 {ß}{{\ss}}1 {°}{{$^\circ$}}1
+           {²}{{$^2$}}1}
+\lstset{style=cpp}
+
+% Inline-Code als kleines Makro
+\newcommand{\code}[1]{\texttt{\small #1}}
+
+% ---- Hilfsbefehl: zentrierte Folien-Abbildung ---------------
+% #1 = Breite (Faktor von \linewidth), #2 = Dateiname, #3 = Caption
+\newcommand{\folie}[3]{%
+  \begin{figure}[h!]\centering
+    \includegraphics[width=#1\linewidth]{#2}%
+    \caption{#3}%
+  \end{figure}}

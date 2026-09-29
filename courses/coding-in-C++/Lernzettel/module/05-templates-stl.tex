@@ -1,0 +1,168 @@
+% ============================================================
+\section{Generische Programmierung \& STL (Abschnitt VI)}
+% ============================================================
+\begin{definition}[: Generische Programmierung]
+,,Schreibe Code einmal -- nutze ihn f\"ur viele Typen.'' Algorithmen und Datenstrukturen werden \textbf{unabh\"angig vom konkreten Datentyp} spezifiziert (statt \code{max\_int}, \code{max\_double}, \dots\ nur ein \code{max<T>}).
+\end{definition}
+Vorteile: \textbf{Wiederverwendung} (DRY), \textbf{Typsicherheit} (Pr\"ufung zur Compile-Zeit), \textbf{Effizienz} (eigene Codeversion je Typ = \emph{Monomorphismus}, kein Laufzeit-Overhead), \textbf{Flexibilit\"at} (Anforderungen an Eigenschaften statt feste Typen).
+
+\subsection{Templates}
+Templates sind der zentrale Mechanismus: Code mit Platzhaltern f\"ur Typen/Werte, der \textbf{zur Compile-Zeit} in konkreten Code \"ubersetzt wird.
+
+\subsubsection*{Funktions-Template}
+\begin{lstlisting}
+template <typename T>
+T max(T a, T b) {
+    return (a > b) ? a : b;
+}
+max(3, 5);       // -> max<int>
+max(2.5, 1.5);   // -> max<double>
+// max(3, 5.5);  // FEHLER: T uneindeutig (int vs double)
+\end{lstlisting}
+\code{template <...>} steht direkt vor der Funktion und darf nicht abgetrennt werden. Funktioniert nur, wenn die verwendeten Operatoren f\"ur \code{T} existieren.
+
+\subsubsection*{Klassen-Template}
+\begin{lstlisting}
+template <typename T>
+class Box {
+    T value;
+public:
+    Box(T v) : value(v) {}
+    T get() { return value; }
+};
+Box<int> b1(10);   // Typ explizit (noetig vor C++17)
+Box b2(3.14);      // ab C++17 deduzierbar
+\end{lstlisting}
+
+\subsubsection*{Mehrere Typ- und Nicht-Typ-Parameter}
+\begin{lstlisting}
+template <typename T, typename U>          // mehrere Typparameter
+void printPair(T a, U b) { std::cout << a << ", " << b << '\n'; }
+
+template <typename T, int N>               // Nicht-Typ-Parameter (Wert!)
+class Array { public: T data[N]; };
+Array<int, 10> a;   // T=int, N=10  (N muss zur Compile-Zeit bekannt sein)
+\end{lstlisting}
+
+\subsubsection*{Template-Spezialisierung}
+Spezielle Implementierung f\"ur einen konkreten Typ -- hat \textbf{Priorit\"at} vor dem allgemeinen Template.
+\begin{lstlisting}
+template <typename T> T process(T value) { return value + value; }
+
+template <>                                // Spezialisierung fuer bool
+bool process<bool>(bool value) { return !value; }
+\end{lstlisting}
+
+\begin{merke}
+Templates werden erst \textbf{beim Verwenden} instanziiert und f\"ur jede \"Ubersetzungseinheit separat erzeugt. Deshalb m\"ussen Templates \textbf{inkl. ihrer Logik in der Header-Datei (\code{.hpp})} stehen -- Implementierung in einer \code{.cpp} f\"uhrt zu \emph{Undefined Behaviour}.
+\end{merke}
+
+\subsection{STL -- Standard Template Library}
+Die STL kombiniert \textbf{Container} (Objektsammlungen), \textbf{Iteratoren} (einheitlicher Durchlauf) und \textbf{Algorithmen} (Such-/Sortierfunktionen). Vorteile: optimierte Performance, weniger Speicherfehler, standardisierte Interfaces.
+
+\subsubsection*{Container-Kategorien}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Kategorie} & \textbf{Beschreibung / Beispiele} \\
+\midrule
+Sequence & geordnet, Zugriff per Index/Iterator (\code{vector}, \code{list}, \code{array}) \\
+Adapter & Wrapper, der einen Container einschr\"ankt (\code{stack}, \code{queue}) \\
+Associative & automatisch sortiert, Zugriff per Key, Baum (\code{map}, \code{set}) \\
+Unordered & Key-basiert, unsortiert, Hash (\code{unordered\_map}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{Die wichtigsten Container}
+\begin{center}\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & \textbf{\code{std::vector}} & \textbf{\code{std::map}} \\
+\midrule
+Modell & dynamisches Array & Key$\to$Value (sortiert) \\
+Speicher & zusammenh\"angend & Baumstruktur \\
+Indexzugriff & \code{v[i]} -- $O(1)$ & --- \\
+Suche & $O(n)$ & per Key $O(\log n)$ \\
+typisch & \code{push\_back}, \code{front}, \code{back} & \code{m["k"]=v}, \code{insert}, \code{erase} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\code{std::list} ist eine \textbf{doppelt verkettete Liste}: kein Indexzugriff, aber schnelles Einf\"ugen/L\"oschen an beliebiger Stelle (\code{push\_front}, \code{push\_back}).
+\begin{lstlisting}
+std::vector<int> v = {1, 2, 3};
+v.push_back(4);                // anhaengen
+std::cout << v[1] << v.front() << v.back();
+
+std::map<std::string, int> m;
+m["Alice"] = 25;               // anlegen oder aendern
+m.insert({"Bob", 30});
+m.erase("Alice");
+\end{lstlisting}
+Gemeinsame Konzepte aller Container: \code{c.size()}, \code{c.empty()}, \code{c.insert(...)}, \code{c.erase(...)}, for-each-Schleife und STL-Algorithmen.
+
+\subsection{for-each-Schleife}
+\begin{lstlisting}
+std::vector<int> v = {1, 2, 3};
+for (int x : v)        { std::cout << x << " "; }   // Kopie
+for (auto& x : v)      { x *= 2; }                  // Referenz: veraendert v
+\end{lstlisting}
+Durchl\"auft alle Elemente; kein Indexzugriff, Reihenfolge/Richtung nicht anpassbar.
+
+\subsection{Iteratoren}
+Ein \emph{Iterator} ist ein \textbf{verallgemeinerter Zeiger}: zeigt auf ein Element, kann weiterbewegt werden und erlaubt Zugriff. Die for-each-Schleife nutzt intern Iteratoren.
+\begin{lstlisting}
+for (std::vector<int>::iterator it = v.begin(); it != v.end(); ++it) {
+    std::cout << *it << " ";    // *it: Zugriff,  ++it: naechstes Element
+}
+\end{lstlisting}
+\code{begin()} liefert den ersten, \code{end()} zeigt \textbf{hinter} das letzte Element -- der Bereich ist halboffen \code{[begin, end)}.
+
+\subsubsection*{Iterator-Kategorien (hierarchisch, je au\ss en st\"arker)}
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Kategorie} & \textbf{Kann} & \textbf{Operationen} & \textbf{Container} \\
+\midrule
+Input / Output & einmal lesen \emph{bzw.}\ schreiben & \code{*i}, \code{++} & Streams \\
+Forward & mehrfach lesen+schreiben & \code{*i}, \code{++} & \code{forward\_list} \\
+Bidirectional & vorw\"arts \& r\"uckw\"arts & \code{++}, \code{--} & \code{list}, \code{map} \\
+Random-Access & beliebiger Index & \code{++ -- += []} \code{< >} & \code{vector} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{merke}
+Beim Iterator: \code{.} greift auf Member des \emph{Iterators} zu, \code{->} auf Member des \emph{Elements}. (\code{it->name} statt \code{(*it).name}.)
+\end{merke}
+
+\subsection{STL-Algorithmen}
+Generische Funktionen, die auf \textbf{Bereichen} \code{[begin, end)} arbeiten -- \emph{nicht} auf Containern. Dadurch containerunabh\"angig.
+\begin{syntaxbox}
+\code{std::algorithmus(begin, end, ...);}
+\end{syntaxbox}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Algorithmus} & \textbf{Wirkung} \\
+\midrule
+\code{std::sort} & sortiert aufsteigend ($O(n\log n)$) \\
+\code{std::find} & erstes passendes Element \\
+\code{std::count} & Anzahl eines Werts \\
+\code{std::accumulate} & Summe (aus \code{<numeric>}) \\
+\code{std::copy} / \code{transform} & kopieren / Funktion anwenden \\
+\code{std::reverse} / \code{replace} & umkehren / Werte ersetzen \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{lstlisting}
+#include <algorithm>
+std::vector<int> v = {4, 1, 7, 3};
+std::sort(v.begin(), v.end());                 // 1 3 4 7
+auto it = std::find(v.begin(), v.end(), 3);
+if (it != v.end()) std::cout << "gefunden: " << *it;
+\end{lstlisting}
+
+\begin{tipp}
+\textbf{Trade-offs:} Templates erzeugen oft sehr lange, schwer lesbare Compiler-Fehler, h\"ohere Codekomplexit\"at sowie l\"angere Compile-Zeiten und gr\"o\ss ere Bin\"ardateien (\emph{Code-Bloat}), da pro Typ eigener Code entsteht.
+\end{tipp}
+\clearpage

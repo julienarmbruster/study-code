@@ -33,6 +33,26 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "build Lab 6 Sec 3",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-std=c++20",
+                "-g",
+                "${workspaceFolder}/courses/coding-in-C++/Lab_06/lab6_sec3.cpp",
+                "${workspaceFolder}/courses/coding-in-C++/Lab_06/device.cpp",
+                "-o",
+                "${workspaceFolder}/courses/coding-in-C++/Lab_06/lab6_sec3"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

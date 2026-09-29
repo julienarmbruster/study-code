@@ -1,0 +1,72 @@
+% ============================================================
+\section{Tooling \& Testing (Lab 12)}
+% ============================================================
+\subsection{Unit-Tests mit GoogleTest}
+\emph{Unit-Tests} pr\"ufen einzelne Bausteine (z.\,B. eine Klasse) automatisiert. GoogleTest (gtest) ist ein verbreitetes Framework.
+\begin{syntaxbox}
+\code{TEST(TestSuiteName, TestName) \{ ... Assertions ... \}}
+\end{syntaxbox}
+\begin{lstlisting}
+#include <gtest/gtest.h>
+#include "calculator.hpp"
+
+TEST(CalculatorTest, Addition) {
+    Calculator calc;
+    EXPECT_EQ(calc.add(2, 3), 5);
+    EXPECT_EQ(calc.add(-1, 1), 0);
+}
+
+TEST(CalculatorTest, DivisionByZero) {
+    Calculator calc;
+    EXPECT_THROW(calc.divide(10, 0), std::invalid_argument);   // erwartet Exception
+}
+\end{lstlisting}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Assertion} & \textbf{pr\"uft} \\
+\midrule
+\code{EXPECT\_EQ(a, b)} & \code{a == b} (Test l\"auft bei Fehler weiter) \\
+\code{EXPECT\_TRUE(x)} / \code{FALSE} & Wahrheitswert \\
+\code{EXPECT\_THROW(expr, Typ)} & dass \code{expr} eine Exception vom \code{Typ} wirft \\
+\code{ASSERT\_*} & wie \code{EXPECT\_*}, aber bricht den Test bei Fehler ab \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{tipp}
+\code{EXPECT\_*} meldet einen Fehler, l\"asst den Test aber weiterlaufen (mehrere Pr\"ufungen pro Test). \code{ASSERT\_*} bricht sofort ab -- sinnvoll, wenn die folgenden Zeilen sonst abst\"urzen w\"urden (z.\,B. nach einem Null-Check).
+\end{tipp}
+
+\subsection{Build mit CMake}
+\emph{CMake} beschreibt den Build plattformunabh\"angig in \code{CMakeLists.txt}. \code{FetchContent} l\"adt Abh\"angigkeiten (hier gtest) automatisch.
+\begin{lstlisting}[language={},morekeywords={}]
+cmake_minimum_required(VERSION 3.20)
+project(gtest_lab LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+enable_testing()
+add_library(calculator src/calculator.cpp)
+target_include_directories(calculator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+include(FetchContent)
+FetchContent_Declare(googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip)
+FetchContent_MakeAvailable(googletest)
+
+add_executable(calculator_tests tests/calculator_tests.cpp)
+target_link_libraries(calculator_tests PRIVATE calculator GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(calculator_tests)
+\end{lstlisting}
+Bauen \& Testen typischerweise:
+\begin{lstlisting}[language={}]
+cmake -S . -B build      # Build-Verzeichnis konfigurieren
+cmake --build build      # kompilieren
+ctest --test-dir build   # Tests ausfuehren
+\end{lstlisting}
+\begin{merke}
+Grundbausteine einer \code{CMakeLists.txt}: \code{add\_library} / \code{add\_executable} (Ziele), \code{target\_link\_libraries} (Abh\"angigkeiten/Bibliotheken), \code{target\_include\_directories} (Header-Pfade). \code{gtest\_discover\_tests} registriert die Tests automatisch bei CTest.
+\end{merke}
+\clearpage

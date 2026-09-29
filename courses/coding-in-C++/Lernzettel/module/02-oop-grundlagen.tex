@@ -1,0 +1,170 @@
+% ============================================================
+\section{OOP-Grundlagen: Klassen (Abschnitt III)}
+% ============================================================
+In C war die Programmierung \emph{prozedural}: Daten und Logik (Funktionen) sind getrennt. \textbf{Objektorientierte Programmierung (OOP)} b\"undelt beides in \emph{Objekten}. Eine \emph{Klasse} ist die Blaupause (Datentyp), ein \emph{Objekt} ist eine konkrete Instanz (Variable).
+
+\begin{definition}[: Die vier S\"aulen der OOP]
+\begin{itemize}
+  \item \textbf{Abstraktion} -- nur wesentliche Details zeigen, Komplexit\"at verbergen.
+  \item \textbf{Kapselung} -- Daten + Methoden in einer Einheit b\"undeln und Zugriff beschr\"anken.
+  \item \textbf{Vererbung} -- Eigenschaften/Methoden einer Klasse weitergeben (Wiederverwendung).
+  \item \textbf{Polymorphie} -- Objekte verschiedener Klassen \"uber einen gemeinsamen Typ behandeln.
+\end{itemize}
+\end{definition}
+
+\subsection{Klasse vs. struct}
+Klassen werden mit \code{class} erzeugt und \"ahneln \code{struct}s. Konvention: Klassenname mit Gro\ss buchstabe.
+\begin{merke}
+Einziger technischer Unterschied: In einer \code{class} sind Member standardm\"a\ss ig \textbf{private}, in einem \code{struct} \textbf{public}.
+\end{merke}
+
+\subsection{Kapselung: Zugriffsspezifizierer}
+\begin{itemize}
+  \item \textbf{\code{private:}} nur innerhalb der eigenen Klasse sichtbar -- meist f\"ur \emph{Attribute}.
+  \item \textbf{\code{public:}} \"uberall sichtbar -- bildet die \emph{Schnittstelle} (meist Methoden).
+\end{itemize}
+\begin{lstlisting}
+class Point {
+private:
+    double x;          // nur intern
+    double y;
+public:
+    void setX(int value);   // Schnittstelle
+    void setY(int value) { y = value; }  // Inline-Definition moeglich
+};
+\end{lstlisting}
+
+\subsection{Methoden au\ss erhalb der Klasse + Scope-Operator \texttt{::}}
+Methoden k\"onnen \emph{inline} in der Klasse oder \emph{au\ss erhalb} definiert werden. Au\ss erhalb verwendet man den \emph{Bereichsaufl\"osungsoperator} \code{::}.
+\begin{lstlisting}
+void Point::setX(int value) {   // Klasse::Methode
+    x = value;
+}
+\end{lstlisting}
+Anwendungsf\"alle von \code{::}: Zugriff auf Namespaces (\code{std::cout}), Methodendefinition au\ss erhalb der Klasse, Zugriff auf statische Member (\code{Klasse::member}) und Zugriff auf den globalen Scope (\code{::number}).
+
+\subsection{Objekte erzeugen: Stack vs. Heap}
+\begin{itemize}
+  \item \textbf{Stack} -- Zugriff \"uber den Punktoperator \code{.}\,:
+  \begin{lstlisting}
+Point p;       p.setX(10);
+  \end{lstlisting}
+  \item \textbf{Heap} -- Zugriff \"uber den Pfeiloperator \code{->}\, (nach \code{new}, siehe unten).
+\end{itemize}
+
+\subsection{Konstruktoren}
+Ein \emph{Konstruktor} wird \textbf{automatisch} beim Erzeugen eines Objekts aufgerufen und initialisiert die Attribute.
+\begin{merke}
+Der Konstruktor tr\"agt \textbf{denselben Namen wie die Klasse} und hat \textbf{keinen R\"uckgabetyp} (auch nicht \code{void}).
+\end{merke}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Art} & \textbf{Beschreibung} \\
+\midrule
+Default-Konstruktor & ohne Parameter; existiert automatisch, wenn keiner definiert ist \\
+Parametrisierter K. & setzt Attribute aus Argumenten: \code{Car(int v)} \\
+Copy-Konstruktor & erzeugt Kopie eines Objekts: \code{Car(const Car\& c)} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{lstlisting}
+class Car {
+public:
+    int velocity;
+    Car(int v) { velocity = v; }           // parametrisiert
+    Car(const Car& c) { velocity = c.velocity; }  // Copy (Call-by-Reference!)
+};
+Car c(120);   // ruft parametrisierten Konstruktor
+\end{lstlisting}
+
+\subsubsection{Member-Initialisierungsliste (besserer Stil)}
+Werden Attribute im Konstruktor\emph{k\"orper} gesetzt, werden sie erst default-initialisiert und dann \"uberschrieben. Die \emph{Initialisierungsliste} initialisiert direkt.
+\begin{syntaxbox}
+\code{Klasse::Klasse(Param) : member1\{param1\}, member2\{param2\} \{ ... \}}
+\end{syntaxbox}
+\begin{lstlisting}
+Plane::Plane(std::string brand, int seats)
+    : brand{brand}, seats{seats} { }   // effizienter; Pflicht bei const-Attributen
+\end{lstlisting}
+\begin{merke}
+Die Initialisierungsliste ist effizienter und \textbf{Pflicht bei \code{const}- und Referenz-Attributen}. Achtung: Die Member werden in der Reihenfolge der \textbf{Klassendeklaration} initialisiert, nicht in der Reihenfolge der Liste.
+\end{merke}
+
+\subsection{Die Selbstreferenz \texttt{this}}
+\code{this} ist ein \emph{Zeiger} auf das aktuelle Objekt (\code{ClassName* this}) -- deshalb Zugriff mit \code{->}. H\"aufigster Einsatz: Namenskonflikt zwischen Parameter und Attribut aufl\"osen.
+\begin{lstlisting}
+void Plane::setSpeed(int speed) {
+    this->speed = speed;   // Attribut = Parameter; ohne this->  haette der Parameter Vorrang
+}
+\end{lstlisting}
+Weitere Anwendungen: Objektadresse \"ubergeben (\code{f(this)}), Method-Chaining (\code{return *this;}).
+
+\subsection{Dynamischer Speicher: \texttt{new} / \texttt{delete}}
+\code{malloc} reserviert nur \emph{rohen} Speicher und ruft \textbf{keinen Konstruktor} auf -- bei Klassen mit z.\,B. \code{std::string} f\"uhrt das zu Abst\"urzen. C\texttt{++} nutzt daher \code{new}/\code{delete}.
+\begin{lstlisting}
+int* p1   = new int(42);       // Speicher + Initialisierung
+int* arr  = new int[10];       // Array
+MyClass* o = new MyClass(42);  // ruft Konstruktor auf -> Zugriff mit o->member
+
+delete p1;        // einzelnes Objekt
+delete[] arr;     // mit new[] erzeugtes Array
+\end{lstlisting}
+\begin{merke}
+Jedes \code{new} braucht genau ein passendes \code{delete} (\code{new[]} $\to$ \code{delete[]}). \code{delete} ruft erst den \textbf{Destruktor} auf und gibt dann den Speicher frei. (Sp\"ater l\"ost RAII / Smart Pointer dies automatisch -- siehe Abschnitt~\ref{sec:smartptr}.)
+\end{merke}
+
+\subsection{Destruktoren}
+Der \emph{Destruktor} ist das Gegenst\"uck zum Konstruktor und gibt Ressourcen frei.
+\begin{itemize}
+  \item Name: \code{\textasciitilde Klasse()} -- kein R\"uckgabetyp, keine Parameter, genau einer pro Klasse.
+  \item Wird automatisch aufgerufen bei \code{delete} oder beim Verlassen des Scopes.
+\end{itemize}
+\begin{beispiel}[: Memory Leak vermeiden]
+\begin{lstlisting}
+class CleanClass {
+private:
+    int* data;
+public:
+    CleanClass()  { data = new int[1000]; }
+    ~CleanClass() { delete[] data; }   // ohne diesen Destruktor: Memory Leak!
+};
+\end{lstlisting}
+\end{beispiel}
+\begin{merke}
+Der vom Compiler erzeugte Standard-Destruktor zerst\"ort nur die Member selbst, gibt aber \textbf{keinen mit \code{new} reservierten Speicher} frei. Bei dynamischer Speicherverwaltung ist ein eigener Destruktor \textbf{zwingend}.
+\end{merke}
+
+\subsection{Konstante Memberfunktionen}
+Eine \code{const}-Methode sichert zu, dass sie den Objektzustand nicht \"andert (read-only). Das \code{const} steht \textbf{hinter} der Parameterliste.
+\begin{lstlisting}
+double getSaldo() const {   // darf saldo nicht veraendern
+    return saldo;
+}
+\end{lstlisting}
+\begin{tipp}
+Methoden, die das Objekt nicht ver\"andern, immer als \code{const} markieren. Bei einem \code{const}-Objekt (z.\,B. \code{const ClassX\& x}) sind nur \code{const}-Methoden aufrufbar.
+\end{tipp}
+
+\subsection{Statische Member}
+\code{static}-Member geh\"oren der \textbf{Klasse als Ganzes}, nicht einem einzelnen Objekt -- sie existieren genau einmal.
+\begin{itemize}
+  \item \textbf{Statische Variablen}: gemeinsamer Speicher f\"ur alle Objekte; m\"ussen \emph{au\ss erhalb} der Klasse definiert werden.
+  \item \textbf{Statische Methoden}: ohne Objekt aufrufbar (\code{Klasse::methode()}); \textbf{kein \code{this}}, Zugriff nur auf andere statische Member.
+\end{itemize}
+\begin{lstlisting}
+class Auto {
+public:
+    static int anzahlAutos;     // Deklaration
+    Auto() { anzahlAutos++; }
+};
+int Auto::anzahlAutos = 0;       // Definition im globalen Scope (Pflicht!)
+
+class Rechner {
+public:
+    static int add(int a, int b) { return a + b; }
+};
+int s = Rechner::add(5, 10);     // Aufruf ohne Objekt
+\end{lstlisting}
+Typische Anwendungen: Instanzenz\"ahler, objektunabh\"angige Hilfsfunktionen, Klassenkonstanten, Singleton-Pattern.
+\clearpage
